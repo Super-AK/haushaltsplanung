@@ -32,62 +32,27 @@ if ($db) {
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container-fluid">
-            <a class="navbar-brand" href="<?= BASE_URL ?>/">
-                <i class="bi bi-wallet2 me-2"></i>Haushaltsplanung
-            </a>
+            <a class="navbar-brand" href="<?= BASE_URL ?>/"><i class="bi bi-wallet2 me-2"></i>Haushaltsplanung</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'index.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/">
-                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'kategorien.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/kategorien.php">
-                            <i class="bi bi-tags me-1"></i>Kategorien
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'buchungen.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/buchungen.php">
-                            <i class="bi bi-journal-text me-1"></i>Buchungen
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'zahlungen.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/zahlungen.php">
-                            <i class="bi bi-cash-stack me-1"></i>Zahlungen
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'haushalte.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/haushalte.php">
-                            <i class="bi bi-house-door me-1"></i>Haushalte
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'hilfe.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/hilfe.php">
-                            <i class="bi bi-question-circle me-1"></i>Hilfe
-                        </a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'index.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'kategorien.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/kategorien.php"><i class="bi bi-tags me-1"></i>Kategorien</a></li>
+                    <li class="nav-item"><a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'buchungen.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/buchungen.php"><i class="bi bi-journal-text me-1"></i>Buchungen</a></li>
+                    <li class="nav-item"><a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'zahlungen.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/zahlungen.php"><i class="bi bi-cash-stack me-1"></i>Zahlungen</a></li>
+                    <li class="nav-item"><a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'haushalte.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/haushalte.php"><i class="bi bi-house-door me-1"></i>Haushalte</a></li>
+                    <li class="nav-item"><a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'hilfe.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/hilfe.php"><i class="bi bi-question-circle me-1"></i>Hilfe</a></li>
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-house me-1"></i>
-                            <?= htmlspecialchars($alleHaushalte[array_search($aktiverHaushalt, array_column($alleHaushalte, 'id'))]['name'] ?? 'Haushalt') ?>
+                            <i class="bi bi-house me-1"></i><?= htmlspecialchars($alleHaushalte[array_search($aktiverHaushalt, array_column($alleHaushalte, 'id'))]['name'] ?? 'Haushalt') ?>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <?php foreach ($alleHaushalte as $h): ?>
-                            <li>
-                                <a class="dropdown-item <?= $h['id'] == $aktiverHaushalt ? 'active' : '' ?>" href="#" onclick="wechsleHaushalt(<?= $h['id'] ?>)">
-                                    <i class="bi bi-<?= $h['id'] == $aktiverHaushalt ? 'check-circle-fill' : 'circle' ?> me-1"></i>
-                                    <?= htmlspecialchars($h['name']) ?>
-                                    <?php if ($h['ist_demo']): ?>
-                                        <span class="badge bg-warning text-dark ms-1">Demo</span>
-                                    <?php endif; ?>
-                                </a>
-                            </li>
+                            <li><a class="dropdown-item <?= $h['id'] == $aktiverHaushalt ? 'active' : '' ?>" href="#" onclick="wechsleHaushalt(<?= $h['id'] ?>)"><i class="bi bi-<?= $h['id'] == $aktiverHaushalt ? 'check-circle-fill' : 'circle' ?> me-1"></i><?= htmlspecialchars($h['name']) ?><?php if ($h['ist_demo']): ?> <span class="badge bg-warning text-dark ms-1">Demo</span><?php endif; ?></a></li>
                             <?php endforeach; ?>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="#" onclick="oeffneNeuenHaushalt()"><i class="bi bi-plus-circle me-1"></i>Neuer Haushalt</a></li>
@@ -147,3 +112,40 @@ if ($db) {
         </div>
     </div>
 
+    <!-- Modal: Daten kopieren -->
+    <div class="modal fade" id="datenKopierenModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Daten aus anderem Haushalt kopieren</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Kopiere Daten in den aktuellen Haushalt:</p>
+                    <div class="mb-3">
+                        <label class="form-label">Quell-Haushalt *</label>
+                        <select class="form-select" id="kopierQuelle">
+                            <option value="">Bitte waehlen...</option>
+                            <?php foreach ($alleHaushalte as $h): ?>
+                                <?php if ($h['id'] != $aktiverHaushalt): ?>
+                                <option value="<?= $h['id'] ?>"><?= htmlspecialchars($h['name']) ?></option>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Zu kopierende Daten:</label>
+                        <div class="form-check"><input class="form-check-input" type="checkbox" id="kopKategorien" checked><label class="form-check-label">Kategorien</label></div>
+                        <div class="form-check"><input class="form-check-input" type="checkbox" id="kopBuchungen" checked><label class="form-check-label">Buchungen</label></div>
+                        <div class="form-check"><input class="form-check-input" type="checkbox" id="kopZahlungen" checked><label class="form-check-label">Zahlungen</label></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="button" class="btn btn-primary" onclick="starteKopieren()">Kopieren</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="container-fluid py-4">
