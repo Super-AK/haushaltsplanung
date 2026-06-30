@@ -2,7 +2,7 @@
 
     <footer class="bg-light text-center text-muted py-3 mt-4">
         <div class="container">
-            <small>Haushaltsplanung v1.2.0 &copy; <?= date('Y') ?></small>
+            <small>Haushaltsplanung v2.0.0 &copy; <?= date('Y') ?></small>
         </div>
     </footer>
 
