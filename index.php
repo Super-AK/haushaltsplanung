@@ -200,4 +200,4 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
-<script src="/assets/js/dashboard.js"></script>
+<script src="<?= BASE_URL ?>/assets/js/dashboard.js"></script>

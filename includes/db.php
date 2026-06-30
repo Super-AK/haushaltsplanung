@@ -1,14 +1,20 @@
 <?php
 /**
- * SQLite Datenbank-Verbindung
+ * Globale Konfiguration
  */
 
+// Basis-URL automatisch erkennen (funktioniert mit und ohne Unterverzeichnis)
+$scriptDir = dirname($_SERVER['SCRIPT_NAME']);
+$baseUrl = preg_replace('#/(pages|api|setup|assets)/.*$#', '', $scriptDir);
+if ($baseUrl === '/') $baseUrl = '';
+define('BASE_URL', $baseUrl);
+
+// Datenbank-Pfad (relativ zum Projekt)
 $dbPath = __DIR__ . '/../sqlite/haushaltsplanung.db';
 
 // DB initialisieren falls nicht vorhanden
 if (!file_exists($dbPath)) {
     require_once __DIR__ . '/../setup/init_db.php';
-    // Nach Init: Response beenden da init_db.php JSON ausgibt
     exit;
 }
 
