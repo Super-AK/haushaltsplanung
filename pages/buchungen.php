@@ -51,5 +51,5 @@ require_once __DIR__ . '/../includes/header.php';
     </div></div>
 </div>
 
-<script src="<?= BASE_URL ?>/assets/js/buchungen.js"></script>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<script src="<?= BASE_URL ?>/assets/js/buchungen.js"></script>
