@@ -1,0 +1,59 @@
+/* Haushaltsplanung - Eigene Styles */
+
+/* Karten-Styling */
+.stat-card {
+    border-left: 4px solid;
+    transition: transform 0.2s;
+}
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+.stat-card.einnahme { border-color: #1cc88a; }
+.stat-card.ausgabe { border-color: #e74a3b; }
+.stat-card.bilanz { border-color: #4e73df; }
+.stat-card.ersparnis { border-color: #36b9cc; }
+
+.stat-card .stat-icon {
+    font-size: 2rem;
+    opacity: 0.3;
+}
+
+/* Badge-Intervalle */
+.badge-einmalig { background-color: #6c757d; }
+.badge-woechentlich { background-color: #0dcaf0; }
+.badge-monatlich { background-color: #198754; }
+.badge-vierteljaehrlich { background-color: #ffc107; color: #000; }
+.badge-jaehrlich { background-color: #dc3545; }
+
+/* Tabellen */
+.table-kategorien tr.inaktiv {
+    opacity: 0.5;
+}
+
+/* Diagramm-Container */
+.chart-container {
+    position: relative;
+    height: 300px;
+}
+
+/* Modal-Padding */
+.modal-body .form-label {
+    font-weight: 500;
+}
+
+/* Farb-Picker */
+.farbe-preview {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 2px solid #dee2e6;
+}
+
+/* Lade-Animation */
+.loading-spinner {
+    display: none;
+}
+.loading-spinner.active {
+    display: inline-block;
+}
