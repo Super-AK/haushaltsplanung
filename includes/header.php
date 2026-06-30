@@ -1,23 +1,12 @@
 <?php
 if (!defined('BASE_URL')) {
-    // Erkenne BASE_URL zuverlässig über SCRIPT_NAME
     $scriptName = $_SERVER['SCRIPT_NAME'] ?? '/';
-    // Entferne den Dateinamen (z.B. /pages/kategorien.php → /pages)
     $dir = dirname($scriptName);
-    // Wenn wir im Root sind oder /pages, /api, /setup, /assets
-    if ($dir === '/' || $dir === '.' || $dir === '') {
+    $appDirs = ['pages', 'api', 'setup', 'assets'];
+    if ($dir === '/' || $dir === '.' || $dir === '' || in_array(basename($dir), $appDirs)) {
         define('BASE_URL', '');
     } else {
-        // Prüfe ob das Verzeichnis ein App-Verzeichnis ist (pages, api, etc.)
-        $appDirs = ['pages', 'api', 'setup', 'assets'];
-        $baseDir = basename($dir);
-        if (in_array($baseDir, $appDirs)) {
-            // Wir sind in /pages/kategorien.php → Basis ist /
-            define('BASE_URL', '');
-        } else {
-            // Wir sind in /haushaltsplanung/pages/kategorien.php → Basis ist /haushaltsplanung
-            define('BASE_URL', $dir);
-        }
+        define('BASE_URL', $dir);
     }
 }
 
@@ -102,6 +91,9 @@ if ($db) {
                             <?php endforeach; ?>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="#" onclick="oeffneNeuenHaushalt()"><i class="bi bi-plus-circle me-1"></i>Neuer Haushalt</a></li>
+                            <?php if (count($alleHaushalte) > 1): ?>
+                            <li><a class="dropdown-item" href="#" onclick="oeffneDatenKopieren()"><i class="bi bi-clipboard me-1"></i>Daten kopieren</a></li>
+                            <?php endif; ?>
                         </ul>
                     </li>
                 </ul>
@@ -109,6 +101,7 @@ if ($db) {
         </div>
     </nav>
 
+    <!-- Modal: Neuer Haushalt -->
     <div class="modal fade" id="haushaltModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -134,6 +127,7 @@ if ($db) {
         </div>
     </div>
 
+    <!-- Modal: Haushalt loeschen -->
     <div class="modal fade" id="haushaltLoeschenModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -148,6 +142,40 @@ if ($db) {
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
                     <button type="button" class="btn btn-danger" id="haushaltLoeschenBtn">Endgueltig loeschen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Daten kopieren -->
+    <div class="modal fade" id="datenKopierenModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Daten aus anderem Haushalt kopieren</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Kopiere Kategorien, Buchungen und Zahlungen in den aktuellen Haushalt:</p>
+                    <div class="mb-3">
+                        <label class="form-label">Quell-Haushalt *</label>
+                        <select class="form-select" id="kopierQuelle">
+                            <option value="">Bitte waehlen...</option>
+                            <?php foreach ($alleHaushalte as $h): ?>
+                                <?php if ($h['id'] != $aktiverHaushalt): ?>
+                                <option value="<?= $h['id'] ?>"><?= htmlspecialchars($h['name']) ?></option>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Es werden Kategorien, Buchungen und vorhandene Zahlungen kopiert.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="button" class="btn btn-primary" onclick="starteKopieren()">Kopieren</button>
                 </div>
             </div>
         </div>

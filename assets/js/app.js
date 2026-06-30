@@ -2,56 +2,17 @@ var BASE_URL = window.BASE_URL || '';
 
 const App = {
     api: {
-        async get(url) {
-            const r = await fetch(BASE_URL + url);
-            if (!r.ok) throw new Error('API-Fehler');
-            return r.json();
-        },
-        async post(url, data) {
-            const r = await fetch(BASE_URL + url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            if (!r.ok) throw new Error('API-Fehler');
-            return r.json();
-        },
-        async put(url, data) {
-            const r = await fetch(BASE_URL + url, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            if (!r.ok) throw new Error('API-Fehler');
-            return r.json();
-        },
-        async delete(url) {
-            const r = await fetch(BASE_URL + url, { method: 'DELETE' });
-            if (!r.ok) throw new Error('API-Fehler');
-            return r.json();
-        }
+        async get(url) { var r = await fetch(BASE_URL + url); if (!r.ok) throw new Error('API-Fehler'); return r.json(); },
+        async post(url, data) { var r = await fetch(BASE_URL + url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }); if (!r.ok) throw new Error('API-Fehler'); return r.json(); },
+        async put(url, data) { var r = await fetch(BASE_URL + url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }); if (!r.ok) throw new Error('API-Fehler'); return r.json(); },
+        async delete(url) { var r = await fetch(BASE_URL + url, { method: 'DELETE' }); if (!r.ok) throw new Error('API-Fehler'); return r.json(); }
     },
-
-    formatCurrency(amount) {
-        return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
-    },
-
-    formatDate(dateStr) {
-        if (!dateStr) return '-';
-        return new Date(dateStr).toLocaleDateString('de-DE');
-    },
-
-    getIntervallText(i) {
-        return { 'einmalig': 'Einmalig', 'woechentlich': 'Wöchentlich', 'monatlich': 'Monatlich', 'vierteljaehrlich': 'Vierteljährlich', 'jaehrlich': 'Jährlich' }[i] || i;
-    },
-
-    getIntervallBadge(i) {
-        return '<span class="badge badge-' + i + '">' + this.getIntervallText(i) + '</span>';
-    },
-
+    formatCurrency(amount) { return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount); },
+    formatDate(dateStr) { if (!dateStr) return '-'; return new Date(dateStr).toLocaleDateString('de-DE'); },
+    getIntervallText(i) { return { 'einmalig': 'Einmalig', 'woechentlich': 'Woechentlich', 'monatlich': 'Monatlich', 'vierteljaehrlich': 'Vierteljaehrlich', 'jaehrlich': 'Jaehrlich' }[i] || i; },
+    getIntervallBadge(i) { return '<span class="badge badge-' + i + '">' + this.getIntervallText(i) + '</span>'; },
     success(msg) { this.showAlert(msg, 'success'); },
     error(msg) { this.showAlert(msg, 'danger'); },
-
     showAlert(msg, type) {
         type = type || 'info';
         document.body.insertAdjacentHTML('beforeend',
@@ -59,12 +20,11 @@ const App = {
             msg + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
         setTimeout(function() { var el = document.querySelector('.alert-dismissible'); if (el) el.remove(); }, 3000);
     },
-
     confirm(msg) {
         return new Promise(function(resolve) {
             var m = document.createElement('div');
             m.className = 'modal fade';
-            m.innerHTML = '<div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Bestätigung</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">' + msg + '</div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button><button type="button" class="btn btn-danger" id="confirmBtn">Löschen</button></div></div></div>';
+            m.innerHTML = '<div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Bestaetigung</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">' + msg + '</div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button><button type="button" class="btn btn-danger" id="confirmBtn">Loeschen</button></div></div></div>';
             document.body.appendChild(m);
             var bs = new bootstrap.Modal(m);
             bs.show();
@@ -76,9 +36,7 @@ const App = {
 
 // Haushalt-Funktionen
 function wechsleHaushalt(id) {
-    App.api.put('/api/haushalte.php', { haushalt_id: id }).then(function() {
-        window.location.reload();
-    });
+    App.api.put('/api/haushalte.php', { haushalt_id: id }).then(function() { window.location.reload(); });
 }
 
 function oeffneNeuenHaushalt() {
@@ -93,10 +51,7 @@ function speichereNeuenHaushalt() {
     App.api.post('/api/haushalte.php', {
         name: name,
         mit_demo_daten: document.getElementById('haushaltDemo').checked ? 1 : 0
-    }).then(function() {
-        App.success('Haushalt erstellt');
-        window.location.reload();
-    });
+    }).then(function() { App.success('Haushalt erstellt'); window.location.reload(); });
 }
 
 function oeffneHaushaltLoeschen(id, name) {
@@ -104,9 +59,24 @@ function oeffneHaushaltLoeschen(id, name) {
     document.getElementById('haushaltLoeschenBtn').onclick = function() {
         App.api.delete('/api/haushalte.php?id=' + id).then(function(r) {
             if (r.error) { App.error(r.error); return; }
-            App.success('Haushalt gelöscht');
+            App.success('Haushalt geloescht');
             window.location.reload();
         });
     };
     new bootstrap.Modal(document.getElementById('haushaltLoeschenModal')).show();
+}
+
+function oeffneDatenKopieren() {
+    document.getElementById('kopierQuelle').value = '';
+    new bootstrap.Modal(document.getElementById('datenKopierenModal')).show();
+}
+
+function starteKopieren() {
+    var quelleId = document.getElementById('kopierQuelle').value;
+    if (!quelleId) { App.error('Bitte Quell-Haushalt waehlen'); return; }
+    App.api.post('/api/haushalt_kopieren.php', { quelle_haushalt_id: parseInt(quelleId) }).then(function(r) {
+        if (r.error) { App.error(r.error); return; }
+        App.success(r.kategorien + ' Kategorien, ' + r.buchungen + ' Buchungen, ' + r.zahlungen + ' Zahlungen kopiert');
+        bootstrap.Modal.getInstance(document.getElementById('datenKopierenModal')).hide();
+    });
 }
