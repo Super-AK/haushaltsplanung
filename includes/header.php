@@ -61,6 +61,11 @@ if ($db) {
                         </a>
                     </li>
                     <li class="nav-item">
+                    <li class="nav-item">
+                        <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'haushalte.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/haushalte.php">
+                            <i class="bi bi-house-door me-1"></i>Haushalte
+                        </a>
+                    </li>
                         <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'hilfe.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/hilfe.php">
                             <i class="bi bi-question-circle me-1"></i>Hilfe
                         </a>

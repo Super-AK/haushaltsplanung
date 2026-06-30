@@ -1,7 +1,9 @@
     </main>
 
     <footer class="bg-light text-center text-muted py-3 mt-4">
-        <div class="container">&copy; <?= date('Y') ?> Haushaltsplanung</div>
+        <div class="container">
+            <small>Haushaltsplanung v1.2.0 &copy; <?= date('Y') ?></small>
+        </div>
     </footer>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
