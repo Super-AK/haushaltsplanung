@@ -1,10 +1,15 @@
 <?php
 /**
- * Demo-Daten für einen Haushalt
+ * Demo-Daten fuer einen Haushalt (nur wenn keine vorhanden)
  */
-
 function ladeDemoDaten($db, $haushaltId) {
-    // Kategorien
+    // Pruefe ob schon Daten vorhanden
+    $stmt = $db->prepare('SELECT COUNT(*) as cnt FROM kategorien WHERE haushalt_id = ?');
+    $stmt->execute([$haushaltId]);
+    if ($stmt->fetch(PDO::FETCH_ASSOC)['cnt'] > 0) {
+        return; // Bereits Daten vorhanden
+    }
+
     $kategorien = [
         ['Gehalt', 'einnahme', 'fix', '#1cc88a'],
         ['Freelance', 'einnahme', 'variabel', '#36b9cc'],
@@ -24,30 +29,29 @@ function ladeDemoDaten($db, $haushaltId) {
         $stmt->execute([$haushaltId, $k[0], $k[1], $k[2], $k[3]]);
     }
 
-    // Buchungen
+    // Kategorie-IDs holen
+    $stmt = $db->prepare('SELECT id FROM kategorien WHERE haushalt_id = ? ORDER BY id');
+    $stmt->execute([$haushaltId]);
+    $katIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
     $jahresanfang = date('Y-01-01');
     $buchungen = [
-        [1, 3000, 'Monatsgehalt', 'monatlich', $jahresanfang],
-        [2, 500, 'Freelance-Auftrag', 'monatlich', $jahresanfang],
-        [3, 50, 'Zinsen Girokonto', 'vierteljaehrlich', $jahresanfang],
-        [4, -1200, 'Warmmiete', 'monatlich', $jahresanfang],
-        [5, -40, 'Internet + Handy', 'monatlich', $jahresanfang],
-        [6, -180, 'Krankenversicherung', 'vierteljaehrlich', $jahresanfang],
-        [7, -400, 'Wocheneinkauf', 'monatlich', $jahresanfang],
-        [8, -150, 'ÖPNV + Tanken', 'monatlich', $jahresanfang],
-        [9, -100, 'Kino, Hobbys', 'monatlich', $jahresanfang],
-        [10, -50, 'Kleidung', 'monatlich', $jahresanfang],
-        [11, -30, 'Apotheke', 'monatlich', $jahresanfang],
+        [0, 3000, 'Monatsgehalt', 'monatlich', $jahresanfang],
+        [1, 500, 'Freelance-Auftrag', 'monatlich', $jahresanfang],
+        [2, 50, 'Zinsen Girokonto', 'vierteljaehrlich', $jahresanfang],
+        [3, -1200, 'Warmmiete', 'monatlich', $jahresanfang],
+        [4, -40, 'Internet + Handy', 'monatlich', $jahresanfang],
+        [5, -180, 'Krankenversicherung', 'vierteljaehrlich', $jahresanfang],
+        [6, -400, 'Wocheneinkauf', 'monatlich', $jahresanfang],
+        [7, -150, 'OePNV + Tanken', 'monatlich', $jahresanfang],
+        [8, -100, 'Kino, Hobbys', 'monatlich', $jahresanfang],
+        [9, -50, 'Kleidung', 'monatlich', $jahresanfang],
+        [10, -30, 'Apotheke', 'monatlich', $jahresanfang],
     ];
 
-    // Kategorie-IDs für diesen Haushalt holen
-    $katStmt = $db->prepare('SELECT id FROM kategorien WHERE haushalt_id = ? ORDER BY id');
-    $katStmt->execute([$haushaltId]);
-    $katIds = $katStmt->fetchAll(PDO::FETCH_COLUMN);
-
     $stmt = $db->prepare('INSERT INTO buchungen (haushalt_id, kategorie_id, betrag, beschreibung, intervall, start_datum) VALUES (?, ?, ?, ?, ?, ?)');
-    foreach ($buchungen as $i => $b) {
-        $stmt->execute([$haushaltId, $katIds[$i], $b[1], $b[2], $b[3], $b[4]]);
+    foreach ($buchungen as $b) {
+        $stmt->execute([$haushaltId, $katIds[$b[0]], $b[1], $b[2], $b[3], $b[4]]);
     }
 
     // Zahlungen (letzte 3 Monate)
@@ -57,13 +61,14 @@ function ladeDemoDaten($db, $haushaltId) {
         date('Y-m-d', strtotime('-1 months')),
     ];
 
-    $bStmt = $db->query('SELECT id, betrag, intervall FROM buchungen WHERE haushalt_id = ' . (int)$haushaltId);
+    $bStmt = $db->prepare('SELECT id, betrag, intervall FROM buchungen WHERE haushalt_id = ?');
+    $bStmt->execute([$haushaltId]);
     $alleBuchungen = $bStmt->fetchAll(PDO::FETCH_ASSOC);
 
     $zStmt = $db->prepare('INSERT INTO zahlungen (buchung_id, betrag, zahlungsdatum) VALUES (?, ?, ?)');
     foreach ($monate as $monat) {
         foreach ($alleBuchungen as $b) {
-            if ($b['intervall'] === 'monatlich' || $b['intervall'] === 'einmalig') {
+            if ($b['intervall'] === 'monatlich') {
                 $zStmt->execute([$b['id'], $b['betrag'], $monat]);
             } elseif ($b['intervall'] === 'vierteljaehrlich') {
                 $monatNum = (int)date('m', strtotime($monat));
