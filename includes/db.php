@@ -10,6 +10,10 @@ if (!defined('BASE_URL')) {
     define('BASE_URL', ($path === '/' || $path === '') ? '' : $path);
 }
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $dbPath = __DIR__ . '/../sqlite/haushaltsplanung.db';
 
 if (!file_exists($dbPath)) {
@@ -26,4 +30,24 @@ try {
     http_response_code(500);
     echo json_encode(['error' => 'DB-Fehler: ' . $e->getMessage()]);
     exit;
+}
+
+// Haushalt-Helper
+function getAktivenHaushalt() {
+    global $db;
+    if (isset($_SESSION['haushalt_id'])) {
+        return (int)$_SESSION['haushalt_id'];
+    }
+    // Ersten verfügbaren Haushalt nehmen
+    $stmt = $db->query('SELECT id FROM haushalte ORDER BY id LIMIT 1');
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($row) {
+        $_SESSION['haushalt_id'] = (int)$row['id'];
+        return $_SESSION['haushalt_id'];
+    }
+    return null;
+}
+
+function setAktivenHaushalt($id) {
+    $_SESSION['haushalt_id'] = (int)$id;
 }
