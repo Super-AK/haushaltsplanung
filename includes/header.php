@@ -61,11 +61,11 @@ if ($db) {
                         </a>
                     </li>
                     <li class="nav-item">
-                    <li class="nav-item">
                         <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'haushalte.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/haushalte.php">
                             <i class="bi bi-house-door me-1"></i>Haushalte
                         </a>
                     </li>
+                    <li class="nav-item">
                         <a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'hilfe.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/hilfe.php">
                             <i class="bi bi-question-circle me-1"></i>Hilfe
                         </a>
@@ -125,21 +125,21 @@ if ($db) {
         </div>
     </div>
 
-    <!-- Modal: Haushalt löschen -->
+    <!-- Modal: Haushalt loeschen -->
     <div class="modal fade" id="haushaltLoeschenModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Haushalt löschen</h5>
+                    <h5 class="modal-title">Haushalt loeschen</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Möchten Sie den Haushalt <strong id="loeschName"></strong> wirklich löschen?</p>
-                    <p class="text-danger"><i class="bi bi-exclamation-triangle"></i> Alle Kategorien, Buchungen und Zahlungen werden gelöscht!</p>
+                    <p>Moechten Sie den Haushalt <strong id="loeschName"></strong> wirklich loeschen?</p>
+                    <p class="text-danger"><i class="bi bi-exclamation-triangle"></i> Alle Kategorien, Buchungen und Zahlungen werden geloescht!</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="button" class="btn btn-danger" id="haushaltLoeschenBtn">Endgültig löschen</button>
+                    <button type="button" class="btn btn-danger" id="haushaltLoeschenBtn">Endgueltig loeschen</button>
                 </div>
             </div>
         </div>
