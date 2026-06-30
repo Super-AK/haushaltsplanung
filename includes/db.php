@@ -1,25 +1,25 @@
 <?php
 if (!defined('BASE_URL')) {
     $scriptName = $_SERVER['SCRIPT_NAME'] ?? '/';
-    $dir = dirname($scriptName);
     $appDirs = ['pages', 'api', 'setup', 'assets'];
-    if ($dir === '/' || $dir === '.' || $dir === '' || in_array(basename($dir), $appDirs)) {
-        define('BASE_URL', '');
-    } else {
-        define('BASE_URL', $dir);
+    $parts = explode('/', trim($scriptName, '/'));
+    $base = '';
+    foreach ($parts as $i => $part) {
+        if (in_array($part, $appDirs)) {
+            $base = $i > 0 ? '/' . implode('/', array_slice($parts, 0, $i)) : '';
+            break;
+        }
     }
+    if ($base === '' && !empty($parts) && !in_array($parts[0], $appDirs) && count($parts) > 1) {
+        $base = '/' . implode('/', array_slice($parts, 0, -1));
+    }
+    define('BASE_URL', $base);
 }
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
 $dbPath = __DIR__ . '/../sqlite/haushaltsplanung.db';
-
-if (!file_exists($dbPath)) {
-    require_once __DIR__ . '/../setup/init_db.php';
-    exit;
-}
+if (!file_exists($dbPath)) { require_once __DIR__ . '/../setup/init_db.php'; exit; }
 
 try {
     $db = new PDO('sqlite:' . $dbPath);
@@ -34,18 +34,11 @@ try {
 
 function getAktivenHaushalt() {
     global $db;
-    if (isset($_SESSION['haushalt_id'])) {
-        return (int)$_SESSION['haushalt_id'];
-    }
+    if (isset($_SESSION['haushalt_id'])) { return (int)$_SESSION['haushalt_id']; }
     $stmt = $db->query('SELECT id FROM haushalte ORDER BY id LIMIT 1');
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($row) {
-        $_SESSION['haushalt_id'] = (int)$row['id'];
-        return $_SESSION['haushalt_id'];
-    }
+    if ($row) { $_SESSION['haushalt_id'] = (int)$row['id']; return $_SESSION['haushalt_id']; }
     return null;
 }
 
-function setAktivenHaushalt($id) {
-    $_SESSION['haushalt_id'] = (int)$id;
-}
+function setAktivenHaushalt($id) { $_SESSION['haushalt_id'] = (int)$id; }

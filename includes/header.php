@@ -1,13 +1,19 @@
 <?php
 if (!defined('BASE_URL')) {
     $scriptName = $_SERVER['SCRIPT_NAME'] ?? '/';
-    $dir = dirname($scriptName);
     $appDirs = ['pages', 'api', 'setup', 'assets'];
-    if ($dir === '/' || $dir === '.' || $dir === '' || in_array(basename($dir), $appDirs)) {
-        define('BASE_URL', '');
-    } else {
-        define('BASE_URL', $dir);
+    $parts = explode('/', trim($scriptName, '/'));
+    $base = '';
+    foreach ($parts as $i => $part) {
+        if (in_array($part, $appDirs)) {
+            $base = $i > 0 ? '/' . implode('/', array_slice($parts, 0, $i)) : '';
+            break;
+        }
     }
+    if ($base === '' && !empty($parts) && !in_array($parts[0], $appDirs) && count($parts) > 1) {
+        $base = '/' . implode('/', array_slice($parts, 0, -1));
+    }
+    define('BASE_URL', $base);
 }
 
 require_once __DIR__ . '/db.php';
@@ -66,86 +72,36 @@ if ($db) {
         </div>
     </nav>
 
-    <!-- Modal: Neuer Haushalt -->
-    <div class="modal fade" id="haushaltModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Neuer Haushalt</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Name *</label>
-                        <input type="text" class="form-control" id="haushaltName" placeholder="z.B. Familie Mueller" required>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="haushaltDemo" checked>
-                        <label class="form-check-label">Beispieldaten laden</label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="button" class="btn btn-primary" onclick="speichereNeuenHaushalt()">Erstellen</button>
-                </div>
-            </div>
+    <div class="modal fade" id="haushaltModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Neuer Haushalt</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <div class="mb-3"><label class="form-label">Name *</label><input type="text" class="form-control" id="haushaltName" required></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="haushaltDemo" checked><label class="form-check-label">Beispieldaten laden</label></div>
         </div>
-    </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button><button type="button" class="btn btn-primary" onclick="speichereNeuenHaushalt()">Erstellen</button></div>
+    </div></div></div>
 
-    <!-- Modal: Haushalt loeschen -->
-    <div class="modal fade" id="haushaltLoeschenModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Haushalt loeschen</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Moechten Sie den Haushalt <strong id="loeschName"></strong> wirklich loeschen?</p>
-                    <p class="text-danger"><i class="bi bi-exclamation-triangle"></i> Alle Daten werden geloescht!</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="button" class="btn btn-danger" id="haushaltLoeschenBtn">Endgueltig loeschen</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="modal fade" id="haushaltLoeschenModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Haushalt loeschen</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><p>Moechten Sie <strong id="loeschName"></strong> wirklich loeschen?</p><p class="text-danger"><i class="bi bi-exclamation-triangle"></i> Alle Daten werden geloescht!</p></div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button><button type="button" class="btn btn-danger" id="haushaltLoeschenBtn">Loeschen</button></div>
+    </div></div></div>
 
-    <!-- Modal: Daten kopieren -->
-    <div class="modal fade" id="datenKopierenModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Daten aus anderem Haushalt kopieren</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Kopiere Daten in den aktuellen Haushalt:</p>
-                    <div class="mb-3">
-                        <label class="form-label">Quell-Haushalt *</label>
-                        <select class="form-select" id="kopierQuelle">
-                            <option value="">Bitte waehlen...</option>
-                            <?php foreach ($alleHaushalte as $h): ?>
-                                <?php if ($h['id'] != $aktiverHaushalt): ?>
-                                <option value="<?= $h['id'] ?>"><?= htmlspecialchars($h['name']) ?></option>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Zu kopierende Daten:</label>
-                        <div class="form-check"><input class="form-check-input" type="checkbox" id="kopKategorien" checked><label class="form-check-label">Kategorien</label></div>
-                        <div class="form-check"><input class="form-check-input" type="checkbox" id="kopBuchungen" checked><label class="form-check-label">Buchungen</label></div>
-                        <div class="form-check"><input class="form-check-input" type="checkbox" id="kopZahlungen" checked><label class="form-check-label">Zahlungen</label></div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="button" class="btn btn-primary" onclick="starteKopieren()">Kopieren</button>
-                </div>
+    <div class="modal fade" id="datenKopierenModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Daten kopieren</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <div class="mb-3"><label class="form-label">Quell-Haushalt *</label>
+                <select class="form-select" id="kopierQuelle"><option value="">Bitte waehlen...</option>
+                    <?php foreach ($alleHaushalte as $h): ?><?php if ($h['id'] != $aktiverHaushalt): ?><option value="<?= $h['id'] ?>"><?= htmlspecialchars($h['name']) ?></option><?php endif; ?><?php endforeach; ?>
+                </select>
+            </div>
+            <div class="mb-3"><label class="form-label fw-bold">Daten:</label>
+                <div class="form-check"><input class="form-check-input" type="checkbox" id="kopKategorien" checked><label class="form-check-label">Kategorien</label></div>
+                <div class="form-check"><input class="form-check-input" type="checkbox" id="kopBuchungen" checked><label class="form-check-label">Buchungen</label></div>
+                <div class="form-check"><input class="form-check-input" type="checkbox" id="kopZahlungen" checked><label class="form-check-label">Zahlungen</label></div>
             </div>
         </div>
-    </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button><button type="button" class="btn btn-primary" onclick="starteKopieren()">Kopieren</button></div>
+    </div></div></div>
 
     <main class="container-fluid py-4">
