@@ -72,11 +72,16 @@ function oeffneDatenKopieren() {
 }
 
 function starteKopieren() {
-    var quelleId = document.getElementById('kopierQuelle').value;
-    if (!quelleId) { App.error('Bitte Quell-Haushalt waehlen'); return; }
-    App.api.post('/api/haushalt_kopieren.php', { quelle_haushalt_id: parseInt(quelleId) }).then(function(r) {
+    var quelleId = document.getElementById("kopierQuelle").value;
+    if (!quelleId) { App.error("Bitte Quell-Haushalt waehlen"); return; }
+    App.api.post("/api/haushalt_kopieren.php", {
+        quelle_haushalt_id: parseInt(quelleId),
+        kategorien: document.getElementById("kopKategorien").checked ? 1 : 0,
+        buchungen: document.getElementById("kopBuchungen").checked ? 1 : 0,
+        zahlungen: document.getElementById("kopZahlungen").checked ? 1 : 0
+    }).then(function(r) {
         if (r.error) { App.error(r.error); return; }
-        App.success(r.kategorien + ' Kategorien, ' + r.buchungen + ' Buchungen, ' + r.zahlungen + ' Zahlungen kopiert');
-        bootstrap.Modal.getInstance(document.getElementById('datenKopierenModal')).hide();
+        App.success(r.message);
+        bootstrap.Modal.getInstance(document.getElementById("datenKopierenModal")).hide();
     });
 }

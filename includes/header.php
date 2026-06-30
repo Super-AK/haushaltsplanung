@@ -147,38 +147,3 @@ if ($db) {
         </div>
     </div>
 
-    <!-- Modal: Daten kopieren -->
-    <div class="modal fade" id="datenKopierenModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Daten aus anderem Haushalt kopieren</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Kopiere Kategorien, Buchungen und Zahlungen in den aktuellen Haushalt:</p>
-                    <div class="mb-3">
-                        <label class="form-label">Quell-Haushalt *</label>
-                        <select class="form-select" id="kopierQuelle">
-                            <option value="">Bitte waehlen...</option>
-                            <?php foreach ($alleHaushalte as $h): ?>
-                                <?php if ($h['id'] != $aktiverHaushalt): ?>
-                                <option value="<?= $h['id'] ?>"><?= htmlspecialchars($h['name']) ?></option>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Es werden Kategorien, Buchungen und vorhandene Zahlungen kopiert.
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="button" class="btn btn-primary" onclick="starteKopieren()">Kopieren</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <main class="container-fluid py-4">
