@@ -1,10 +1,25 @@
+<?php
+/**
+ * BASE_URL auto-erkennen (vor jeder Nutzung)
+ */
+if (!defined('BASE_URL')) {
+    $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+    $path = rtrim($path, '/');
+    // Basis-Pfad aus Unterverzeichnissen extrahieren
+    if (preg_match('#^(/.+?)/(?:pages|api|setup|assets)/#', $path, $m)) {
+        $path = $m[1];
+    } elseif (substr($path, -9) === '/index.php') {
+        $path = substr($path, 0, -9);
+    }
+    define('BASE_URL', ($path === '/' || $path === '') ? '' : $path);
+}
+?>
 <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?? 'Haushaltsplanung' ?></title>
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?= BASE_URL ?>/assets/css/app.css" rel="stylesheet">
@@ -49,5 +64,4 @@
             </div>
         </div>
     </nav>
-
     <main class="container-fluid py-4">
