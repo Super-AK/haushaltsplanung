@@ -34,11 +34,36 @@ try {
 
 function getAktivenHaushalt() {
     global $db;
-    if (isset($_SESSION['haushalt_id'])) { return (int)$_SESSION['haushalt_id']; }
+    // 1. Versuche Session
+    if (!empty($_SESSION['haushalt_id'])) {
+        // Pruefe ob Haushalt noch existiert
+        $stmt = $db->prepare('SELECT id FROM haushalte WHERE id = ?');
+        $stmt->execute([$_SESSION['haushalt_id']]);
+        if ($stmt->fetch()) {
+            return (int)$_SESSION['haushalt_id'];
+        }
+    }
+    // 2. Cookie als Fallback
+    if (!empty($_COOKIE['haushalt_id'])) {
+        $stmt = $db->prepare('SELECT id FROM haushalte WHERE id = ?');
+        $stmt->execute([$_COOKIE['haushalt_id']]);
+        if ($stmt->fetch()) {
+            $_SESSION['haushalt_id'] = (int)$_COOKIE['haushalt_id'];
+            return $_SESSION['haushalt_id'];
+        }
+    }
+    // 3. Ersten Haushalt nehmen
     $stmt = $db->query('SELECT id FROM haushalte ORDER BY id LIMIT 1');
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($row) { $_SESSION['haushalt_id'] = (int)$row['id']; return $_SESSION['haushalt_id']; }
+    if ($row) {
+        $_SESSION['haushalt_id'] = (int)$row['id'];
+        setcookie('haushalt_id', $row['id'], time() + 86400 * 30, '/');
+        return $_SESSION['haushalt_id'];
+    }
     return null;
 }
 
-function setAktivenHaushalt($id) { $_SESSION['haushalt_id'] = (int)$id; }
+function setAktivenHaushalt($id) {
+    $_SESSION['haushalt_id'] = (int)$id;
+    setcookie('haushalt_id', $id, time() + 86400 * 30, '/');
+}
