@@ -1,24 +1,8 @@
-# Datenbank (enthält persönliche Daten)
-*.db
-*.db-journal
-*.db-wal
-*.db-shm
-
-# SQLite Verzeichnis
-/var/www/sqlite/
-
-# Nginx Standardseite
-index.nginx-debian.html
-
 # System-Dateien
 .DS_Store
 Thumbs.db
-
-# Backup-Dateien
 *.bak
 *.swp
 *~
-
-# Temporäre Dateien
 *.tmp
 *.log

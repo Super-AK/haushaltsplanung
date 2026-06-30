@@ -1,10 +1,15 @@
 <?php
 /**
  * Haushaltsplanung DB-Initialisierung
- * Erstellt die SQLite-Datenbank mit Schema und Beispiel-Daten
  */
 
-$dbPath = '/var/www/sqlite/haushaltsplanung.db';
+$dbDir = __DIR__ . '/../sqlite';
+$dbPath = $dbDir . '/haushaltsplanung.db';
+
+// Verzeichnis erstellen falls nicht vorhanden
+if (!is_dir($dbDir)) {
+    mkdir($dbDir, 0775, true);
+}
 
 if (file_exists($dbPath)) {
     echo json_encode(['status' => 'already_initialized', 'message' => 'Datenbank existiert bereits']);
@@ -56,6 +61,16 @@ try {
         )
     ");
 
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS kontostand (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            betrag REAL NOT NULL,
+            datum TEXT NOT NULL,
+            bemerkung TEXT,
+            created_at TEXT DEFAULT (datetime('now'))
+        )
+    ");
+
     // Beispiel-Kategorien
     $kategorien = [
         ['Gehalt', 'einnahme', 'fix', '#1cc88a'],
@@ -99,7 +114,7 @@ try {
         $stmt->execute($b);
     }
 
-    // Beispiel-Zahlungen (letzte 3 Monate simulieren)
+    // Beispiel-Zahlungen (letzte 3 Monate)
     $monate = [
         date('Y-m-d', strtotime('-3 months')),
         date('Y-m-d', strtotime('-2 months')),

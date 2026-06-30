@@ -3,7 +3,7 @@
  * SQLite Datenbank-Verbindung
  */
 
-$dbPath = '/var/www/sqlite/haushaltsplanung.db';
+$dbPath = __DIR__ . '/../sqlite/haushaltsplanung.db';
 
 // DB initialisieren falls nicht vorhanden
 if (!file_exists($dbPath)) {
