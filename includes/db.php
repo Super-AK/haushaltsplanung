@@ -1,13 +1,13 @@
 <?php
 if (!defined('BASE_URL')) {
-    $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-    $path = rtrim($path, '/');
-    if (preg_match('#^(/.+?)/(?:pages|api|setup|assets)/#', $path, $m)) {
-        $path = $m[1];
-    } elseif (substr($path, -9) === '/index.php') {
-        $path = substr($path, 0, -9);
+    $scriptName = $_SERVER['SCRIPT_NAME'] ?? '/';
+    $dir = dirname($scriptName);
+    $appDirs = ['pages', 'api', 'setup', 'assets'];
+    if ($dir === '/' || $dir === '.' || $dir === '' || in_array(basename($dir), $appDirs)) {
+        define('BASE_URL', '');
+    } else {
+        define('BASE_URL', $dir);
     }
-    define('BASE_URL', ($path === '/' || $path === '') ? '' : $path);
 }
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -32,13 +32,11 @@ try {
     exit;
 }
 
-// Haushalt-Helper
 function getAktivenHaushalt() {
     global $db;
     if (isset($_SESSION['haushalt_id'])) {
         return (int)$_SESSION['haushalt_id'];
     }
-    // Ersten verfügbaren Haushalt nehmen
     $stmt = $db->query('SELECT id FROM haushalte ORDER BY id LIMIT 1');
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($row) {

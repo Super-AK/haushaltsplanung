@@ -1,13 +1,24 @@
 <?php
 if (!defined('BASE_URL')) {
-    $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-    $path = rtrim($path, '/');
-    if (preg_match('#^(/.+?)/(?:pages|api|setup|assets)/#', $path, $m)) {
-        $path = $m[1];
-    } elseif (substr($path, -9) === '/index.php') {
-        $path = substr($path, 0, -9);
+    // Erkenne BASE_URL zuverlässig über SCRIPT_NAME
+    $scriptName = $_SERVER['SCRIPT_NAME'] ?? '/';
+    // Entferne den Dateinamen (z.B. /pages/kategorien.php → /pages)
+    $dir = dirname($scriptName);
+    // Wenn wir im Root sind oder /pages, /api, /setup, /assets
+    if ($dir === '/' || $dir === '.' || $dir === '') {
+        define('BASE_URL', '');
+    } else {
+        // Prüfe ob das Verzeichnis ein App-Verzeichnis ist (pages, api, etc.)
+        $appDirs = ['pages', 'api', 'setup', 'assets'];
+        $baseDir = basename($dir);
+        if (in_array($baseDir, $appDirs)) {
+            // Wir sind in /pages/kategorien.php → Basis ist /
+            define('BASE_URL', '');
+        } else {
+            // Wir sind in /haushaltsplanung/pages/kategorien.php → Basis ist /haushaltsplanung
+            define('BASE_URL', $dir);
+        }
     }
-    define('BASE_URL', ($path === '/' || $path === '') ? '' : $path);
 }
 
 require_once __DIR__ . '/db.php';
@@ -71,7 +82,6 @@ if ($db) {
                         </a>
                     </li>
                 </ul>
-                <!-- Haushalt-Dropdown -->
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
@@ -99,7 +109,6 @@ if ($db) {
         </div>
     </nav>
 
-    <!-- Modal: Neuer Haushalt -->
     <div class="modal fade" id="haushaltModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -110,7 +119,7 @@ if ($db) {
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Name *</label>
-                        <input type="text" class="form-control" id="haushaltName" placeholder="z.B. Familie Müller" required>
+                        <input type="text" class="form-control" id="haushaltName" placeholder="z.B. Familie Mueller" required>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="haushaltDemo" checked>
@@ -125,7 +134,6 @@ if ($db) {
         </div>
     </div>
 
-    <!-- Modal: Haushalt loeschen -->
     <div class="modal fade" id="haushaltLoeschenModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -135,7 +143,7 @@ if ($db) {
                 </div>
                 <div class="modal-body">
                     <p>Moechten Sie den Haushalt <strong id="loeschName"></strong> wirklich loeschen?</p>
-                    <p class="text-danger"><i class="bi bi-exclamation-triangle"></i> Alle Kategorien, Buchungen und Zahlungen werden geloescht!</p>
+                    <p class="text-danger"><i class="bi bi-exclamation-triangle"></i> Alle Daten werden geloescht!</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
