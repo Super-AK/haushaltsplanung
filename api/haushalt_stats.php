@@ -7,16 +7,15 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method !== 'GET') { http_response_code(405); echo json_encode(['error' => 'Methode nicht erlaubt']); exit; }
 
 $jahr = (int)($_GET['jahr'] ?? date('Y'));
-
-// Nur erlaubte Haushalte laden
 $erlaubt = getErlaubteHaushalte();
+
 if (empty($erlaubt)) {
     echo json_encode(['jahr' => $jahr, 'haushalte' => []]);
     exit;
 }
 
-$platzhalter = implode(',', array_fill(0, count($erlaubt), '?'));
-$stmt = $db->prepare("SELECT * FROM haushalte WHERE id IN ($platzhalter) ORDER BY name");
+$ph = implode(',', array_fill(0, count($erlaubt), '?'));
+$stmt = $db->prepare("SELECT * FROM haushalte WHERE id IN ($ph) ORDER BY name");
 $stmt->execute($erlaubt);
 $haushalte = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -50,11 +49,16 @@ foreach ($haushalte as $h) {
     $stmt->execute([$hid]);
     $ks = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Recht des Users auf diesen Haushalt
+    // Recht + Besitzer ermitteln
     $stmt = $db->prepare('SELECT recht FROM user_haushalte WHERE user_id = ? AND haushalt_id = ?');
     $stmt->execute([$_SESSION['user_id'], $hid]);
     $rechtRow = $stmt->fetch(PDO::FETCH_ASSOC);
     $recht = $rechtRow ? $rechtRow['recht'] : (isAdmin() ? 'besitzer' : 'lesen');
+
+    $stmt = $db->prepare('SELECT u.benutzername FROM user_haushalte uh JOIN users u ON uh.user_id = u.id WHERE uh.haushalt_id = ? AND uh.recht = ? LIMIT 1');
+    $stmt->execute([$hid, 'besitzer']);
+    $besitzerRow = $stmt->fetch(PDO::FETCH_ASSOC);
+    $besitzer = $besitzerRow ? $besitzerRow['benutzername'] : '-';
 
     $ergebnis[] = [
         'id' => $hid,
@@ -68,7 +72,8 @@ foreach ($haushalte as $h) {
         'ausgaben' => $bilanz['ausgaben'],
         'bilanz' => $bilanz['einnahmen'] - $bilanz['ausgaben'],
         'kontostand' => $ks ? $ks['betrag'] : null,
-        'recht' => $recht
+        'recht' => $recht,
+        'besitzer' => $besitzer
     ];
 }
 

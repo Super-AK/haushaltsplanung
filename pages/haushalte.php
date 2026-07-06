@@ -61,7 +61,7 @@ async function ladeHaushalte() {
                 '<h6 class="mb-0"><i class="bi bi-house me-1"></i>' + h.name +
                 (h.ist_demo ? ' <span class="badge bg-warning text-dark ms-1">Demo</span>' : '') +
                 (istAktiv ? ' <span class="badge bg-light text-primary ms-1">Aktiv</span>' : '') +
-                rechtBadge +
+                rechtBadge + (h.besitzer ? ' <small class="text-muted">(' + h.besitzer + ')</small>' : '') +
                 '</h6><div>' +
                 (kannWechseln ? '<button class="btn btn-sm btn-outline-' + (istAktiv ? 'light' : 'primary') + ' me-1" onclick="wechsleHaushalt(' + h.id + ')" title="Wechseln"><i class="bi bi-arrow-left-right"></i></button>' : '') +
                 (kannLoeschen ? '<button class="btn btn-sm btn-outline-danger" onclick="oeffneHaushaltLoeschen(' + h.id + ', \'' + h.name.replace(/'/g, "\\'") + '\')" title="Loeschen"><i class="bi bi-trash"></i></button>' : '') +
