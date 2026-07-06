@@ -21,12 +21,14 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 $dbDir = __DIR__ . '/../sqlite';
 $dbPath = $dbDir . '/haushaltsplanung.db';
 
-// Datenbank-Verzeichnis erstellen
 if (!is_dir($dbDir)) { mkdir($dbDir, 0775, true); }
 
-// Erstinitialisierung falls keine DB vorhanden
-$erstInit = !file_exists($dbPath);
+// Erstinitialisierung: Tabellen anlegen wenn DB-Datei nicht existiert
+if (!file_exists($dbPath)) {
+    require_once __DIR__ . '/../setup/init_db.php';
+}
 
+// Verbindung herstellen
 try {
     $db = new PDO('sqlite:' . $dbPath);
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -38,14 +40,9 @@ try {
     exit;
 }
 
-// Bei Erstinitialisierung: Schema anlegen
-if ($erstInit) {
-    require_once __DIR__ . '/../setup/init_db.php';
-}
-
-// Migrationen ausfuehren (fuer Updates)
+// Migrationen ausfuehren (prueft ob Tabellen/Spalten fehlen)
 require_once __DIR__ . '/../setup/migrate.php';
-$neueMigrationen = fuehreMigrationenAus($db);
+fuehreMigrationenAus($db);
 
 // === AUTH FUNKTIONEN ===
 
@@ -131,8 +128,6 @@ function getErlaubteHaushalte($recht = 'lesen') {
     }
     return $erlaubt;
 }
-
-// === HAUSHALT FUNKTIONEN ===
 
 function getAktivenHaushalt() {
     global $db;
