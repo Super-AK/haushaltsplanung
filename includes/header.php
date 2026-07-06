@@ -17,13 +17,28 @@ if (!defined('BASE_URL')) {
 }
 
 require_once __DIR__ . '/db.php';
+
+// Login pruefen (ausser auf Login-Seite)
+$istLoginSeite = (basename($_SERVER['PHP_SELF']) === 'login.php');
+if (!$istLoginSeite && !isLoggedIn()) {
+    header('Location: ' . BASE_URL . '/pages/login.php');
+    exit;
+}
+
 $aktiverHaushalt = null;
 $alleHaushalte = [];
-if ($db) {
-    $stmt = $db->query('SELECT * FROM haushalte ORDER BY name');
-    $alleHaushalte = $stmt->fetchAll(PDO::FETCH_ASSOC);
+if ($db && isLoggedIn()) {
+    $erlaubt = getErlaubteHaushalte();
+    if (!empty($erlaubt)) {
+        $platzhalter = implode(',', array_fill(0, count($erlaubt), '?'));
+        $stmt = $db->prepare("SELECT * FROM haushalte WHERE id IN ($platzhalter) ORDER BY name");
+        $stmt->execute($erlaubt);
+        $alleHaushalte = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     $aktiverHaushalt = getAktivenHaushalt();
 }
+
+$aktUser = isLoggedIn() ? getAktuellenUser() : null;
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -43,35 +58,57 @@ if ($db) {
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
+                <?php if (isLoggedIn()): ?>
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item"><a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'index.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'kategorien.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/kategorien.php"><i class="bi bi-tags me-1"></i>Kategorien</a></li>
                     <li class="nav-item"><a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'buchungen.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/buchungen.php"><i class="bi bi-journal-text me-1"></i>Buchungen</a></li>
                     <li class="nav-item"><a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'zahlungen.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/zahlungen.php"><i class="bi bi-cash-stack me-1"></i>Zahlungen</a></li>
                     <li class="nav-item"><a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'haushalte.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/haushalte.php"><i class="bi bi-house-door me-1"></i>Haushalte</a></li>
+                    <?php if (isAdmin()): ?>
+                    <li class="nav-item"><a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'users.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/users.php"><i class="bi bi-people me-1"></i>Users</a></li>
+                    <?php endif; ?>
                     <li class="nav-item"><a class="nav-link <?= basename($_SERVER['PHP_SELF']) === 'hilfe.php' ? 'active' : '' ?>" href="<?= BASE_URL ?>/pages/hilfe.php"><i class="bi bi-question-circle me-1"></i>Hilfe</a></li>
                 </ul>
+
                 <ul class="navbar-nav">
-                    <li class="nav-item dropdown">
+                    <!-- Haushalt-Dropdown -->
+                    <?php if (count($alleHaushalte) > 0): ?>
+                    <li class="nav-item dropdown me-2">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-house me-1"></i><?= htmlspecialchars($alleHaushalte[array_search($aktiverHaushalt, array_column($alleHaushalte, 'id'))]['name'] ?? 'Haushalt') ?>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <?php foreach ($alleHaushalte as $h): ?>
-                            <li><a class="dropdown-item <?= $h['id'] == $aktiverHaushalt ? 'active' : '' ?>" href="#" onclick="wechsleHaushalt(<?= $h['id'] ?>)"><i class="bi bi-<?= $h['id'] == $aktiverHaushalt ? 'check-circle-fill' : 'circle' ?> me-1"></i><?= htmlspecialchars($h['name']) ?><?php if ($h['ist_demo']): ?> <span class="badge bg-warning text-dark ms-1">Demo</span><?php endif; ?></a></li>
+                            <li><a class="dropdown-item <?= $h['id'] == $aktiverHaushalt ? 'active' : '' ?>" href="#" onclick="wechsleHaushalt(<?= $h['id'] ?>)"><i class="bi bi-<?= $h['id'] == $aktiverHaushalt ? 'check-circle-fill' : 'circle' ?> me-1"></i><?= htmlspecialchars($h['name']) ?></a></li>
                             <?php endforeach; ?>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="#" onclick="oeffneNeuenHaushalt()"><i class="bi bi-plus-circle me-1"></i>Neuer Haushalt</a></li>
-                            <?php if (count($alleHaushalte) > 1): ?>
                             <li><a class="dropdown-item" href="#" onclick="oeffneDatenKopieren()"><i class="bi bi-clipboard me-1"></i>Daten kopieren</a></li>
-                            <?php endif; ?>
+                        </ul>
+                    </li>
+                    <?php endif; ?>
+
+                    <!-- User-Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i><?= htmlspecialchars($aktUser['benutzername'] ?? '') ?>
+                            <?php if (isAdmin()): ?><span class="badge bg-warning text-dark ms-1">Admin</span><?php endif; ?>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><span class="dropdown-item-text text-muted"><small>Eingeloggt als<br><strong><?= htmlspecialchars($aktUser['benutzername'] ?? '') ?></strong> (<?= $aktUser['rolle'] ?? '' ?>)</small></span></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-1"></i>Abmelden</a></li>
                         </ul>
                     </li>
                 </ul>
+                <?php endif; ?>
             </div>
         </div>
     </nav>
 
+    <!-- Modals (nur wenn eingeloggt) -->
+    <?php if (isLoggedIn()): ?>
     <div class="modal fade" id="haushaltModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
         <div class="modal-header"><h5 class="modal-title">Neuer Haushalt</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body">
@@ -79,12 +116,6 @@ if ($db) {
             <div class="form-check"><input class="form-check-input" type="checkbox" id="haushaltDemo" checked><label class="form-check-label">Beispieldaten laden</label></div>
         </div>
         <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button><button type="button" class="btn btn-primary" onclick="speichereNeuenHaushalt()">Erstellen</button></div>
-    </div></div></div>
-
-    <div class="modal fade" id="haushaltLoeschenModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
-        <div class="modal-header"><h5 class="modal-title">Haushalt loeschen</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-        <div class="modal-body"><p>Moechten Sie <strong id="loeschName"></strong> wirklich loeschen?</p><p class="text-danger"><i class="bi bi-exclamation-triangle"></i> Alle Daten werden geloescht!</p></div>
-        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button><button type="button" class="btn btn-danger" id="haushaltLoeschenBtn">Loeschen</button></div>
     </div></div></div>
 
     <div class="modal fade" id="datenKopierenModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
@@ -103,5 +134,6 @@ if ($db) {
         </div>
         <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button><button type="button" class="btn btn-primary" onclick="starteKopieren()">Kopieren</button></div>
     </div></div></div>
+    <?php endif; ?>
 
     <main class="container-fluid py-4">

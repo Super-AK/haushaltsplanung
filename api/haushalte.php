@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
-require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . "/../includes/db.php";
+requireLogin();
 $haushaltId = getAktivenHaushalt();
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -21,7 +22,8 @@ switch ($method) {
         $stmt->execute([$data['name'], $istDemo]);
         $newId = $db->lastInsertId();
         if (!empty($data['mit_demo_daten'])) {
-            require_once __DIR__ . '/../setup/demo_data.php';
+            require_once __DIR__ . "/../includes/db.php";
+requireLogin();
             ladeDemoDaten($db, $newId);
         }
         setAktivenHaushalt($newId);

@@ -12,6 +12,7 @@ require_once __DIR__ . '/../includes/header.php';
     <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabBuchungen"><i class="bi bi-journal-text me-1"></i>Buchungen</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabZahlungen"><i class="bi bi-cash-stack me-1"></i>Zahlungen</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabDashboard"><i class="bi bi-speedometer2 me-1"></i>Dashboard</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabUsers"><i class="bi bi-person me-1"></i>User</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabAPI"><i class="bi bi-code-slash me-1"></i>API</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabFAQ"><i class="bi bi-chat-dots me-1"></i>FAQ</button></li>
 </ul>
@@ -197,6 +198,31 @@ require_once __DIR__ . '/../includes/header.php';
             <ul>
                 <li><strong>Balkendiagramm:</strong> Monatlicher Einnahmen/Ausgaben-Verlauf (Ist + Prognose)</li>
                 <li><strong>Donut:</strong> Ausgaben nach Kategorie</li>
+            </ul>
+        </div></div>
+    </div>
+
+    <!-- User -->
+    <div class="tab-pane fade" id="tabUsers">
+        <div class="card shadow-sm"><div class="card-body">
+            <h5><i class="bi bi-person me-2"></i>User-Verwaltung</h5>
+            <p>Jeder User hat einen Login und kann nur Haushalte sehen, fuer die er berechtigt ist.</p>
+            <h6 class="mt-4">Rollen</h6>
+            <table class="table table-sm"><thead><tr><th>Rolle</th><th>Berechtigung</th></tr></thead><tbody>
+            <tr><td><span class="badge bg-primary">Admin</span></td><td>Sieht alles, kann User verwalten, Haushalte zuordnen</td></tr>
+            <tr><td><span class="badge bg-secondary">Benutzer</span></td><td>Sieht nur zugewiesene Haushalte</td></tr>
+            </tbody></table>
+            <h6 class="mt-4">Haushalte zuordnen</h6>
+            <ol>
+                <li>Admin -> "Users" in der Navbar</li>
+                <li>Bei User auf <i class="bi bi-house"></i> klicken</li>
+                <li>Haushalt auswaehlen + Recht setzen (Lesen/Schreiben/Besitzer)</li>
+            </ol>
+            <h6 class="mt-4">Rechte pro Haushalt</h6>
+            <ul>
+                <li><strong>Lesen</strong> - Kann Daten ansehen</li>
+                <li><strong>Schreiben</strong> - Kann Buchungen/Zahlungen erfassen</li>
+                <li><strong>Besitzer</strong> - Volle Kontrolle, kann anderen Usern Zugriff geben</li>
             </ul>
         </div></div>
     </div>

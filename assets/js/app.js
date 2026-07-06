@@ -54,34 +54,29 @@ function speichereNeuenHaushalt() {
     }).then(function() { App.success('Haushalt erstellt'); window.location.reload(); });
 }
 
-function oeffneHaushaltLoeschen(id, name) {
-    document.getElementById('loeschName').textContent = name;
-    document.getElementById('haushaltLoeschenBtn').onclick = function() {
-        App.api.delete('/api/haushalte.php?id=' + id).then(function(r) {
-            if (r.error) { App.error(r.error); return; }
-            App.success('Haushalt geloescht');
-            window.location.reload();
-        });
-    };
-    new bootstrap.Modal(document.getElementById('haushaltLoeschenModal')).show();
-}
-
 function oeffneDatenKopieren() {
     document.getElementById('kopierQuelle').value = '';
     new bootstrap.Modal(document.getElementById('datenKopierenModal')).show();
 }
 
 function starteKopieren() {
-    var quelleId = document.getElementById("kopierQuelle").value;
-    if (!quelleId) { App.error("Bitte Quell-Haushalt waehlen"); return; }
-    App.api.post("/api/haushalt_kopieren.php", {
+    var quelleId = document.getElementById('kopierQuelle').value;
+    if (!quelleId) { App.error('Bitte Quell-Haushalt waehlen'); return; }
+    App.api.post('/api/haushalt_kopieren.php', {
         quelle_haushalt_id: parseInt(quelleId),
-        kategorien: document.getElementById("kopKategorien").checked ? 1 : 0,
-        buchungen: document.getElementById("kopBuchungen").checked ? 1 : 0,
-        zahlungen: document.getElementById("kopZahlungen").checked ? 1 : 0
+        kategorien: document.getElementById('kopKategorien').checked ? 1 : 0,
+        buchungen: document.getElementById('kopBuchungen').checked ? 1 : 0,
+        zahlungen: document.getElementById('kopZahlungen').checked ? 1 : 0
     }).then(function(r) {
         if (r.error) { App.error(r.error); return; }
         App.success(r.message);
-        bootstrap.Modal.getInstance(document.getElementById("datenKopierenModal")).hide();
+        bootstrap.Modal.getInstance(document.getElementById('datenKopierenModal')).hide();
+    });
+}
+
+// Auth-Funktionen
+function logout() {
+    App.api.delete('/api/auth.php').then(function() {
+        window.location.href = BASE_URL + '/pages/login.php';
     });
 }
