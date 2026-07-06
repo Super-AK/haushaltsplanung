@@ -1,19 +1,19 @@
-# Haushaltsplanung v2.0
+# Haushaltsplanung v2.2
 
-WebApp zur Einnahmen-/Ausgabenverwaltung mit Dashboard, Diagrammen, Jahresend-Prognose und Multi-Haushalt-Unterstuetzung.
+WebApp zur Einnahmen-/Ausgabenverwaltung mit Multi-User-Unterstuetzung, geteilten Haushalten und Jahresend-Prognose.
 
 ## Features
 
-- **Multi-Haushalt** - Mehrere Haushalte anlegen, wechseln, loeschen
-- **Dashboard** mit Kennzahlen-Karten und Chart.js-Diagrammen
-- **Kontostand-Eingabe** mit automatischer Prognose bis Jahresende
-- **Kategorien-Verwaltung** (Einnahmen, Fixkosten, Variable Kosten)
-- **Buchungen** mit wiederkehrenden Intervallen (woechentlich bis jaehrlich)
-- **Zahlungserfassung** mit Historie und Tagesbilanz
+- **Multi-User** mit Rollen (Admin/Benutzer)
+- **Haushalte teilen** zwischen Usern mit Berechtigungen (Lesen/Schreiben/Besitzer)
+- **Dashboard** mit Kennzahlen und Chart.js-Diagrammen
+- **Kontostand-Prognose** bis Jahresende
+- **Kategorien** fuer Einnahmen, Fixkosten, Variable Kosten
+- **Buchungen** mit wiederkehrenden Intervallen
+- **Zahlungserfassung** mit Historie
 - **Daten kopieren** zwischen Haushalten mit Dublikat-Erkennung
-- **Massen-Loeschung** mit Checkboxen fuer Kategorien und Buchungen
-- **Hilfe-Seite** mit interaktiver Anleitung
-- **REST API** fuer alle Operationen
+- **Massen-Loeschung** fuer Kategorien und Buchungen
+- **Update-sicher** via Migrationssystem
 
 ## Technologien
 
@@ -25,22 +25,36 @@ WebApp zur Einnahmen-/Ausgabenverwaltung mit Dashboard, Diagrammen, Jahresend-Pr
 ## Installation
 
 ```bash
-# Repository klonen
 git clone https://github.com/Super-AK/haushaltsplanung.git
-
-# In Webroot kopieren
 cp -r haushaltsplanung/* /var/www/html/
-
-# Datenbank initialisieren (automatisch beim ersten Aufruf)
+# Seite im Browser oeffnen - DB wird automatisch erstellt
 ```
+
+## Updates
+
+```bash
+cd /var/www/html
+git pull
+# Datenbank bleibt erhalten, Migrationen laufen automatisch
+```
+
+## Standard-Login
+
+| User | Passwort | Rolle |
+|------|----------|-------|
+| admin | admin123 | Admin |
+| demo | demo123 | Benutzer |
 
 ## Struktur
 
 ```
 ├── index.php                    # Dashboard
 ├── api/                         # REST-API (JSON)
+│   ├── auth.php                 # Login/Logout
+│   ├── users.php                # User-Verwaltung (Admin)
+│   ├── user_haushalte.php       # User-Haushalt-Zuordnung
 │   ├── haushalte.php            # Haushalte CRUD
-│   ├── haushalt_stats.php       # Haushalt-Statistiken
+│   ├── haushalt_stats.php       # Statistiken + Besitzer
 │   ├── haushalt_kopieren.php    # Daten kopieren
 │   ├── kategorien.php           # Kategorien CRUD
 │   ├── buchungen.php            # Buchungen CRUD
@@ -49,32 +63,23 @@ cp -r haushaltsplanung/* /var/www/html/
 │   ├── dashboard.php            # Dashboard-Daten
 │   └── diagramme.php            # Diagramm-Daten + Prognose
 ├── pages/                       # Seiten
+│   ├── login.php                # Login-Seite
+│   ├── users.php                # User-Verwaltung (Admin)
+│   ├── haushalte.php            # Haushalte-Uebersicht
 │   ├── kategorien.php
 │   ├── buchungen.php
 │   ├── zahlungen.php
-│   ├── haushalte.php            # Haushalte-Uebersicht
 │   └── hilfe.php                # Hilfe & Anleitung
+├── includes/                    # PHP-Includes
+│   ├── db.php                   # DB + Auth + Berechtigungen
+│   ├── header.php               # Navbar + Modals
+│   └── footer.php               # Footer + Scripts
 ├── assets/                      # CSS + JavaScript
-├── includes/                    # PHP-Includes (DB, Header, Footer)
-├── setup/                       # Datenbank-Initialisierung
-│   ├── init_db.php
-│   └── demo_data.php
-└── sqlite/                      # SQLite Datenbank
-```
-
-## API-Beispiele
-
-```bash
-# Haushalte auflisten
-curl http://localhost/api/haushalte.php
-
-# Kategorien eines Haushalts
-curl http://localhost/api/kategorien.php
-
-# Kontostand setzen
-curl -X POST http://localhost/api/kontostand.php \
-  -H "Content-Type: application/json" \
-  -d '{"betrag": 5000, "datum": "2026-06-30"}'
+├── setup/                       # Setup + Migrationen
+│   ├── init_db.php              # Erstinitialisierung
+│   ├── demo_data.php            # Demo-Daten
+│   └── migrate.php              # Schema-Migrationen
+└── sqlite/                      # SQLite Datenbank (nicht in Git)
 ```
 
 ## Lizenz

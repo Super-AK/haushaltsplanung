@@ -22,15 +22,17 @@ require_once __DIR__ . '/../includes/header.php';
     <!-- Ueberblick -->
     <div class="tab-pane fade show active" id="tabUeberblick">
         <div class="card shadow-sm"><div class="card-body">
-            <h5>Willkommen bei der Haushaltsplanung v2.0</h5>
-            <p class="lead">Verwalten Sie Einnahmen und Ausgaben fuer einen oder mehrere Haushalte.</p>
+            <h5>Haushaltsplanung v2.2</h5>
+            <p class="lead">Verwalten Sie Einnahmen und Ausgaben fuer einen oder mehrere Haushalte mit Multi-User-Unterstuetzung.</p>
             <hr>
             <div class="row">
                 <div class="col-md-6">
                     <h6><i class="bi bi-check-circle text-success me-2"></i>Funktionen</h6>
                     <ul>
                         <li>Dashboard mit Diagrammen und Prognose</li>
+                        <li>Multi-User mit Rollen (Admin/Benutzer)</li>
                         <li>Mehrere Haushalte (erstellen, wechseln, loeschen)</li>
+                        <li>Haushalte zwischen Usern teilen</li>
                         <li>Kategorien fuer Einnahmen und Ausgaben</li>
                         <li>Wiederkehrende Buchungen mit Intervallen</li>
                         <li>Zahlungserfassung mit Historie</li>
@@ -38,6 +40,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <li>Daten aus anderen Haushalten kopieren</li>
                         <li>Massen-Loeschung mit Checkboxen</li>
                         <li>Dublikat-Erkennung beim Kopieren</li>
+                        <li>Update-sicheres Migrationssystem</li>
                     </ul>
                 </div>
                 <div class="col-md-6">
@@ -48,11 +51,10 @@ require_once __DIR__ . '/../includes/header.php';
                         <li>Chart.js fuer Diagramme</li>
                         <li>Nginx als Webserver</li>
                     </ul>
-                    <h6 class="mt-3"><i class="bi bi-key text-warning me-2"></i>Zugriff</h6>
+                    <h6 class="mt-3"><i class="bi bi-key text-warning me-2"></i>Standard-Login</h6>
                     <ul>
-                        <li>Lokal: <code>http://localhost</code></li>
-                        <li>Netzwerk: <code>http://IP-ADRESSE</code></li>
-                        <li>Remote: <code>https://domain.de/haushaltsplanung</code></li>
+                        <li><strong>Admin:</strong> admin / admin123</li>
+                        <li><strong>Benutzer:</strong> demo / demo123</li>
                     </ul>
                 </div>
             </div>
@@ -63,39 +65,30 @@ require_once __DIR__ . '/../includes/header.php';
     <div class="tab-pane fade" id="tabHaushalte">
         <div class="card shadow-sm"><div class="card-body">
             <h5><i class="bi bi-house me-2"></i>Haushalte verwalten</h5>
-            <p>Jeder Haushalt hat eigene Kategorien, Buchungen und Zahlungen. Daten sind komplett isoliert.</p>
-
-            <h6 class="mt-4">Haushalt wechseln</h6>
-            <ol>
-                <li>Navbar-Dropdown (oben rechts) oeffnen</li>
-                <li>Gewuenschten Haushalt anklicken</li>
-                <li>Seite laedt neu, alle Daten beziehen sich auf den neuen Haushalt</li>
-            </ol>
-
-            <h6 class="mt-4">Neuen Haushalt anlegen</h6>
-            <ol>
-                <li>Dropdown -> "Neuer Haushalt"</li>
-                <li>Name eingeben</li>
-                <li>Optional: "Beispieldaten laden" aktivieren</li>
-            </ol>
-
-            <h6 class="mt-4">Daten kopieren</h6>
-            <ol>
-                <li>Dropdown -> "Daten kopieren"</li>
-                <li>Quell-Haushalt waehlen</li>
-                <li>Auswaehlen: Kategorien, Buchungen, Zahlungen (einzelne Optionen)</li>
-                <li>"Kopieren" klicken</li>
-                <li>Dublikate werden automatisch erkannt und uebersprungen</li>
-            </ol>
+            <p>Jeder Haushalt hat eigene Kategorien, Buchungen und Zahlungen. Admin sieht alle Haushalte mit Besitzer-Namen.</p>
 
             <h6 class="mt-4">Haushalte-Uebersicht</h6>
-            <p>Unter "Haushalte" in der Navbar: Gesamtuebersicht mit Statistiken, Wechsel- und Loesch-Buttons.</p>
+            <p>Unter "Haushalte" in der Navbar:</p>
+            <ul>
+                <li>Gesamtuebersicht mit Statistiken pro Haushalt</li>
+                <li><strong>Recht-Badge:</strong> Besitzer / Schreiben / Lesen</li>
+                <li><strong>Besitzer-Name:</strong> Admin sieht wer Eigentuemer ist</li>
+                <li>Wechsel- und Loesch-Buttons nur fuer Berechtigte</li>
+            </ul>
+
+            <h6 class="mt-4">Haushalt wechseln</h6>
+            <p>Navbar-Dropdown (oben rechts) -> Haushalt auswaehlen.</p>
+
+            <h6 class="mt-4">Neuen Haushalt anlegen</h6>
+            <p>Dropdown -> "Neuer Haushalt" -> Name eingeben -> optional Beispieldaten laden.</p>
+            <p><small class="text-muted">Der Ersteller wird automatisch als Besitzer eingetragen.</small></p>
+
+            <h6 class="mt-4">Daten kopieren</h6>
+            <p>Dropdown -> "Daten kopieren" -> Quell-Haushalt waehlen -> Kategorien/Buchungen/Zahlungen auswaehlen -> Kopieren.</p>
+            <p><small class="text-muted">Dublikate werden automatisch erkannt und uebersprungen.</small></p>
 
             <h6 class="mt-4">Haushalt loeschen</h6>
-            <ul>
-                <li>Nur moeglich wenn >1 Haushalt vorhanden</li>
-                <li>Alle Daten werden geloescht (Cascading)</li>
-            </ul>
+            <p>Nur Besitzer haben den Loesch-Button. Der letzte Haushalt kann nicht geloescht werden.</p>
         </div></div>
     </div>
 
@@ -111,21 +104,8 @@ require_once __DIR__ . '/../includes/header.php';
                 <li>Fuer Diagramme eine Farbe auswaehlen</li>
             </ol>
 
-            <h6 class="mt-4">Filtern</h6>
-            <p>Oben auf der Seite: Nach Typ, Art oder Status filtern.</p>
-
             <h6 class="mt-4">Massen-Loeschung</h6>
-            <ol>
-                <li>Checkboxen links neben den Kategorien anklicken</li>
-                <li>Oder "Alle auswaehlen" im Header</li>
-                <li>"Ausgewaehlte loeschen" Button erscheint oben rechts</li>
-            </ol>
-
-            <h6 class="mt-4">Aktionen</h6>
-            <ul>
-                <li><i class="bi bi-pencil text-primary"></i> Bearbeiten</li>
-                <li><i class="bi bi-trash text-danger"></i> Einzelne loeschen</li>
-            </ul>
+            <p>Checkboxen links anklicken oder "Alle auswaehlen" -> "Ausgewaehlte loeschen".</p>
         </div></div>
     </div>
 
@@ -147,10 +127,7 @@ require_once __DIR__ . '/../includes/header.php';
                 </tbody>
             </table>
 
-            <h6 class="mt-4">Massen-Loeschung</h6>
-            <p>Wie bei Kategorien: Checkboxen + "Ausgewaehlte loeschen".</p>
-
-            <div class="alert alert-info mt-3"><i class="bi bi-info-circle me-2"></i><strong>Wichtig:</strong> Buchungen definieren nur, <em>wie oft</em> etwas gezahlt wird. Die tatsaechliche Zahlung erfassen Sie unter "Zahlungen".</div>
+            <div class="alert alert-info mt-3"><i class="bi bi-info-circle me-2"></i>Buchungen definieren nur, <em>wie oft</em> etwas gezahlt wird. Die tatsaechliche Zahlung erfassen Sie unter "Zahlungen".</div>
         </div></div>
     </div>
 
@@ -163,12 +140,9 @@ require_once __DIR__ . '/../includes/header.php';
             <h6 class="mt-4">Neue Zahlung</h6>
             <ol>
                 <li>"Neue Zahlung" klicken</li>
-                <li>Buchung auswaehlen (Betrag wird automatisch vorausgefuellt)</li>
+                <li>Buchung auswaehlen (Betrag wird vorausgefuellt)</li>
                 <li>Zahlungsdatum setzen</li>
             </ol>
-
-            <h6 class="mt-4">Tagesbilanz</h6>
-            <p>Oben auf der Seite: Einnahmen, Ausgaben und Bilanz des heutigen Tages.</p>
 
             <div class="alert alert-warning mt-3"><i class="bi bi-exclamation-triangle me-2"></i>Erfassen Sie Zahlungen regelmaessig - sie fliesen in die Prognose und Diagramme ein!</div>
         </div></div>
@@ -181,22 +155,22 @@ require_once __DIR__ . '/../includes/header.php';
 
             <h6 class="mt-4">Kennzahlen</h6>
             <ul>
-                <li><strong class="text-success">Einnahmen (Jahr)</strong> - Summe aller Einnahmen-Zahlungen</li>
-                <li><strong class="text-danger">Ausgaben (Jahr)</strong> - Summe aller Ausgaben-Zahlungen</li>
+                <li><strong class="text-success">Einnahmen (Jahr)</strong> - Summe aller Einnahmen</li>
+                <li><strong class="text-danger">Ausgaben (Jahr)</strong> - Summe aller Ausgaben</li>
                 <li><strong>Bilanz (Jahr)</strong> - Differenz</li>
-                <li><strong>Ersparnis (Monat)</strong> - Ueberschuss aktueller Monat (Prognose wenn keine Zahlungen)</li>
+                <li><strong>Ersparnis (Monat)</strong> - Prognose aktueller Monat</li>
             </ul>
 
             <h6 class="mt-4">Kontostand & Prognose</h6>
             <ul>
                 <li>Kontostand erfassen: Betrag, Datum, optionale Bemerkung</li>
                 <li><strong>Jahresend-Prognose:</strong> Erwarteter Kontostand am 31.12.</li>
-                <li><strong>Blaue Linie im Diagramm:</strong> Kontostand-Verlauf ueber das Jahr</li>
+                <li><strong>Blaue Linie:</strong> Kontostand-Verlauf ueber das Jahr</li>
             </ul>
 
             <h6 class="mt-4">Diagramme</h6>
             <ul>
-                <li><strong>Balkendiagramm:</strong> Monatlicher Einnahmen/Ausgaben-Verlauf (Ist + Prognose)</li>
+                <li><strong>Balkendiagramm:</strong> Monatlicher Verlauf (Ist + Prognose)</li>
                 <li><strong>Donut:</strong> Ausgaben nach Kategorie</li>
             </ul>
         </div></div>
@@ -206,22 +180,30 @@ require_once __DIR__ . '/../includes/header.php';
     <div class="tab-pane fade" id="tabUsers">
         <div class="card shadow-sm"><div class="card-body">
             <h5><i class="bi bi-person me-2"></i>User-Verwaltung</h5>
-            <p>Jeder User hat einen Login und kann nur Haushalte sehen, fuer die er berechtigt ist.</p>
+            <p>Nur Admins haben Zugriff auf diesen Bereich.</p>
+
             <h6 class="mt-4">Rollen</h6>
             <table class="table table-sm"><thead><tr><th>Rolle</th><th>Berechtigung</th></tr></thead><tbody>
             <tr><td><span class="badge bg-primary">Admin</span></td><td>Sieht alles, kann User verwalten, Haushalte zuordnen</td></tr>
             <tr><td><span class="badge bg-secondary">Benutzer</span></td><td>Sieht nur zugewiesene Haushalte</td></tr>
             </tbody></table>
-            <h6 class="mt-4">Haushalte zuordnen</h6>
+
+            <h6 class="mt-4">User anlegen</h6>
             <ol>
                 <li>Admin -> "Users" in der Navbar</li>
-                <li>Bei User auf <i class="bi bi-house"></i> klicken</li>
-                <li>Haushalt auswaehlen + Recht setzen (Lesen/Schreiben/Besitzer)</li>
+                <li>"Neuer User" -> Benutzername, Passwort, Rolle</li>
             </ol>
+
+            <h6 class="mt-4">Haushalte zuordnen</h6>
+            <ol>
+                <li>Bei User auf <i class="bi bi-house"></i> klicken</li>
+                <li>Haushalt auswaehlen + Recht setzen</li>
+            </ol>
+
             <h6 class="mt-4">Rechte pro Haushalt</h6>
             <ul>
-                <li><strong>Lesen</strong> - Kann Daten ansehen</li>
-                <li><strong>Schreiben</strong> - Kann Buchungen/Zahlungen erfassen</li>
+                <li><strong>Lesen</strong> - Daten ansehen</li>
+                <li><strong>Schreiben</strong> - Buchungen/Zahlungen erfassen</li>
                 <li><strong>Besitzer</strong> - Volle Kontrolle, kann anderen Usern Zugriff geben</li>
             </ul>
         </div></div>
@@ -231,13 +213,16 @@ require_once __DIR__ . '/../includes/header.php';
     <div class="tab-pane fade" id="tabAPI">
         <div class="card shadow-sm"><div class="card-body">
             <h5><i class="bi bi-code-slash me-2"></i>REST API (JSON)</h5>
-            <p>Alle Endpunkte akzeptieren/geben JSON zurueck.</p>
+            <p>Alle Endpunkte erfordern Login (ausser auth.php).</p>
             <table class="table table-sm mt-3">
                 <thead><tr><th>Endpunkt</th><th>Methoden</th><th>Beschreibung</th></tr></thead>
                 <tbody>
-                    <tr><td><code>/api/haushalte.php</code></td><td>GET, POST, PUT, DELETE</td><td>Haushalte verwalten</td></tr>
-                    <tr><td><code>/api/haushalt_stats.php</code></td><td>GET</td><td>Statistiken aller Haushalte</td></tr>
-                    <tr><td><code>/api/haushalt_kopieren.php</code></td><td>POST</td><td>Daten zwischen Haushalten kopieren</td></tr>
+                    <tr><td><code>/api/auth.php</code></td><td>GET, POST, DELETE</td><td>Login/Logout/Status</td></tr>
+                    <tr><td><code>/api/users.php</code></td><td>GET, POST, PUT, DELETE</td><td>User-Verwaltung (Admin)</td></tr>
+                    <tr><td><code>/api/user_haushalte.php</code></td><td>GET, POST, DELETE</td><td>User-Haushalt-Zuordnung</td></tr>
+                    <tr><td><code>/api/haushalte.php</code></td><td>GET, POST, PUT, DELETE</td><td>Haushalte CRUD</td></tr>
+                    <tr><td><code>/api/haushalt_stats.php</code></td><td>GET</td><td>Statistiken mit Besitzer</td></tr>
+                    <tr><td><code>/api/haushalt_kopieren.php</code></td><td>POST</td><td>Daten kopieren</td></tr>
                     <tr><td><code>/api/kategorien.php</code></td><td>GET, POST, PUT, DELETE</td><td>Kategorien CRUD</td></tr>
                     <tr><td><code>/api/buchungen.php</code></td><td>GET, POST, PUT, DELETE</td><td>Buchungen CRUD</td></tr>
                     <tr><td><code>/api/zahlungen.php</code></td><td>GET, POST, DELETE</td><td>Zahlungen erfassen</td></tr>
@@ -270,25 +255,31 @@ require_once __DIR__ . '/../includes/header.php';
                 <div class="accordion-item">
                     <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">Was passiert beim Loeschen eines Haushalts?</button></h2>
                     <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion"><div class="accordion-body">
-                        Alle Kategorien, Buchungen und Zahlungen werden geloescht (Cascading). Der letzte Haushalt kann nicht geloescht werden.
+                        Alle Kategorien, Buchungen und Zahlungen werden geloescht (Cascading). Nur Besitzer koennen loeschen. Der letzte Haushalt kann nicht geloescht werden.
                     </div></div>
                 </div>
                 <div class="accordion-item">
                     <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">Kann ich Daten sichern?</button></h2>
                     <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion"><div class="accordion-body">
-                        Ja! Die Datenbank liegt unter <code>sqlite/haushaltsplanung.db</code>. Als Backup einfach die Datei kopieren.
+                        Ja! Die Datenbank liegt unter <code>sqlite/haushaltsplanung.db</code>. Backup: <code>cp sqlite/haushaltsplanung.db backup.db</code>
                     </div></div>
                 </div>
                 <div class="accordion-item">
                     <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">Sind die Haushalte voneinander getrennt?</button></h2>
                     <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion"><div class="accordion-body">
-                        Ja. Jeder Haushalt hat eigene Kategorien, Buchungen, Zahlungen und einen eigenen Kontostand.
+                        Ja. Jeder Haushalt hat eigene Kategorien, Buchungen, Zahlungen und einen eigenen Kontostand. User sehen nur zugewiesene Haushalte.
                     </div></div>
                 </div>
                 <div class="accordion-item">
                     <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">Was ist "Daten kopieren"?</button></h2>
                     <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion"><div class="accordion-body">
-                        Kopiert Kategorien, Buchungen und Zahlungen aus einem anderen Haushalt in den aktuellen. Dublikate werden erkannt und uebersprungen. Sie koennen einzeln auswaehlen, was kopiert werden soll.
+                        Kopiert Kategorien, Buchungen und Zahlungen aus einem anderen Haushalt. Dublikate werden erkannt und uebersprungen. Einzelne Optionen wahlweise.
+                    </div></div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq7">Was passiert beim Update (git pull)?</button></h2>
+                    <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion"><div class="accordion-body">
+                        Die Datenbank bleibt erhalten. Neuer Code wird einggespielt. Schema-Aenderungen laufen automatisch als Migration. User, Haushalte und Daten bleiben erhalten.
                     </div></div>
                 </div>
             </div>
