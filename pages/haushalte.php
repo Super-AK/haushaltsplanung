@@ -85,4 +85,14 @@ async function ladeHaushalte() {
         $('#inhalt').show();
     } catch (error) { console.error(error); App.error('Fehler beim Laden'); }
 }
+var loeschId = null;
+
+function oeffneHaushaltLoeschen(id, name) {
+    if (!confirm("Haushalt " + name + " wirklich loeschen?")) return;
+    App.api.delete("/api/haushalte.php?id=" + id).then(function(r) {
+        if (r.error) { App.error(r.error); return; }
+        App.success("Haushalt geloescht");
+        ladeHaushalte();
+    }).catch(function(e) { App.error("Fehler beim Loeschen"); });
+}
 </script>
