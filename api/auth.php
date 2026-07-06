@@ -1,12 +1,19 @@
 <?php
-header('Content-Type: application/json');
 require_once __DIR__ . '/../includes/db.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
+// Logout via GET (fuer Redirect aus Navbar)
+if ($method === 'GET' && isset($_GET['action']) && $_GET['action'] === 'logout') {
+    logout();
+    header('Location: ' . BASE_URL . '/pages/login.php');
+    exit;
+}
+
+header('Content-Type: application/json');
+
 switch ($method) {
     case 'POST':
-        // Login
         $data = json_decode(file_get_contents('php://input'), true);
         $benutzername = $data['benutzername'] ?? '';
         $passwort = $data['passwort'] ?? '';
@@ -19,10 +26,7 @@ switch ($method) {
         
         if (login($benutzername, $passwort)) {
             $user = getAktuellenUser();
-            echo json_encode([
-                'message' => 'Login erfolgreich',
-                'user' => $user
-            ]);
+            echo json_encode(['message' => 'Login erfolgreich', 'user' => $user]);
         } else {
             http_response_code(401);
             echo json_encode(['error' => 'Ungueltige Zugangsdaten']);
@@ -30,13 +34,11 @@ switch ($method) {
         break;
     
     case 'DELETE':
-        // Logout
         logout();
         echo json_encode(['message' => 'Logout erfolgreich']);
         break;
     
     case 'GET':
-        // Status pruefen
         if (isLoggedIn()) {
             $user = getAktuellenUser();
             echo json_encode(['eingeloggt' => true, 'user' => $user]);

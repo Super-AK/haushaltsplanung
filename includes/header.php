@@ -98,7 +98,7 @@ $aktUser = isLoggedIn() ? getAktuellenUser() : null;
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><span class="dropdown-item-text text-muted"><small>Eingeloggt als<br><strong><?= htmlspecialchars($aktUser['benutzername'] ?? '') ?></strong> (<?= $aktUser['rolle'] ?? '' ?>)</small></span></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-1"></i>Abmelden</a></li>
+                            <li><a class="dropdown-item" href="<?= BASE_URL ?>/api/auth.php?action=logout"><i class="bi bi-box-arrow-right me-1"></i>Abmelden</a></li>
                         </ul>
                     </li>
                 </ul>
