@@ -18,8 +18,14 @@ if (!defined('BASE_URL')) {
 
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
-$dbPath = __DIR__ . '/../sqlite/haushaltsplanung.db';
-if (!file_exists($dbPath)) { require_once __DIR__ . '/../setup/init_db.php'; exit; }
+$dbDir = __DIR__ . '/../sqlite';
+$dbPath = $dbDir . '/haushaltsplanung.db';
+
+// Datenbank-Verzeichnis erstellen
+if (!is_dir($dbDir)) { mkdir($dbDir, 0775, true); }
+
+// Erstinitialisierung falls keine DB vorhanden
+$erstInit = !file_exists($dbPath);
 
 try {
     $db = new PDO('sqlite:' . $dbPath);
@@ -32,6 +38,15 @@ try {
     exit;
 }
 
+// Bei Erstinitialisierung: Schema anlegen
+if ($erstInit) {
+    require_once __DIR__ . '/../setup/init_db.php';
+}
+
+// Migrationen ausfuehren (fuer Updates)
+require_once __DIR__ . '/../setup/migrate.php';
+$neueMigrationen = fuehreMigrationenAus($db);
+
 // === AUTH FUNKTIONEN ===
 
 function isLoggedIn() {
@@ -40,12 +55,10 @@ function isLoggedIn() {
 
 function requireLogin() {
     if (!isLoggedIn()) {
-        // API-Aufrufe: 401 JSON
         if (strpos($_SERVER['SCRIPT_NAME'] ?? '', '/api/') !== false) {
             http_response_code(401);
             echo json_encode(['error' => 'Login erforderlich', 'redirect' => BASE_URL . '/pages/login.php']);
         } else {
-            // Seitenaufruf: Redirect
             header('Location: ' . BASE_URL . '/pages/login.php');
         }
         exit;
@@ -109,8 +122,6 @@ function getErlaubteHaushalte($recht = 'lesen') {
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
     if (empty($_SESSION['user_id'])) return [];
-    $rechteStufen = ['lesen' => 0, 'schreiben' => 1, 'besitzer' => 2];
-    $minRecht = $rechteStufen[$recht] ?? 0;
     $stmt = $db->prepare('SELECT haushalt_id FROM user_haushalte WHERE user_id = ?');
     $stmt->execute([$_SESSION['user_id']]);
     $alle = $stmt->fetchAll(PDO::FETCH_COLUMN);
@@ -125,7 +136,6 @@ function getErlaubteHaushalte($recht = 'lesen') {
 
 function getAktivenHaushalt() {
     global $db;
-    // Pruefe ob aktueller Haushalt fuer User erlaubt ist
     if (!empty($_SESSION['haushalt_id']) && istBerechtigt($_SESSION['haushalt_id'])) {
         return (int)$_SESSION['haushalt_id'];
     }
@@ -133,7 +143,6 @@ function getAktivenHaushalt() {
         $_SESSION['haushalt_id'] = (int)$_COOKIE['haushalt_id'];
         return $_SESSION['haushalt_id'];
     }
-    // Ersten erlaubten Haushalt nehmen
     $erlaubt = getErlaubteHaushalte();
     if (!empty($erlaubt)) {
         $_SESSION['haushalt_id'] = (int)$erlaubt[0];

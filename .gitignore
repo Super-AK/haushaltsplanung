@@ -1,4 +1,10 @@
-# System-Dateien
+# Datenbank (wird auf dem Server gepflegt)
+sqlite/*.db
+sqlite/*.db-journal
+sqlite/*.db-wal
+sqlite/*.db-shm
+
+# System
 .DS_Store
 Thumbs.db
 *.bak
