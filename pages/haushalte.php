@@ -5,41 +5,17 @@ require_once __DIR__ . '/../includes/header.php';
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0"><i class="bi bi-house-door me-2"></i>Haushalte Uebersicht</h4>
-    <button class="btn btn-primary" onclick="oeffneNeuenHaushalt()">
-        <i class="bi bi-plus-circle me-1"></i>Neuer Haushalt
-    </button>
+    <button class="btn btn-primary" onclick="oeffneNeuenHaushalt()"><i class="bi bi-plus-circle me-1"></i>Neuer Haushalt</button>
 </div>
 
-<div id="loading" class="text-center py-5">
-    <div class="spinner-border text-primary" role="status"></div>
-</div>
+<div id="loading" class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
 
 <div id="inhalt" style="display:none;">
     <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card stat-card shadow-sm text-center py-3">
-                <div class="h3 mb-0 text-primary" id="totalHaushalte">0</div>
-                <div class="text-muted">Haushalte</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card stat-card einnahme shadow-sm text-center py-3">
-                <div class="h3 mb-0 text-success" id="totalEinnahmen">0 EUR</div>
-                <div class="text-muted">Einnahmen gesamt</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card stat-card ausgabe shadow-sm text-center py-3">
-                <div class="h3 mb-0 text-danger" id="totalAusgaben">0 EUR</div>
-                <div class="text-muted">Ausgaben gesamt</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card stat-card bilanz shadow-sm text-center py-3">
-                <div class="h3 mb-0" id="totalBilanz">0 EUR</div>
-                <div class="text-muted">Bilanz gesamt</div>
-            </div>
-        </div>
+        <div class="col-md-3"><div class="card stat-card shadow-sm text-center py-3"><div class="h3 mb-0 text-primary" id="totalHaushalte">0</div><div class="text-muted">Haushalte</div></div></div>
+        <div class="col-md-3"><div class="card stat-card einnahme shadow-sm text-center py-3"><div class="h3 mb-0 text-success" id="totalEinnahmen">0 EUR</div><div class="text-muted">Einnahmen gesamt</div></div></div>
+        <div class="col-md-3"><div class="card stat-card ausgabe shadow-sm text-center py-3"><div class="h3 mb-0 text-danger" id="totalAusgaben">0 EUR</div><div class="text-muted">Ausgaben gesamt</div></div></div>
+        <div class="col-md-3"><div class="card stat-card bilanz shadow-sm text-center py-3"><div class="h3 mb-0" id="totalBilanz">0 EUR</div><div class="text-muted">Bilanz gesamt</div></div></div>
     </div>
     <div class="row" id="haushaltGrid"></div>
 </div>
@@ -47,14 +23,12 @@ require_once __DIR__ . '/../includes/header.php';
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
 
 <script>
-$(document).ready(function() {
-    ladeHaushalte();
-});
+$(document).ready(function() { ladeHaushalte(); });
 
 async function ladeHaushalte() {
     try {
-        const data = await App.api.get('/api/haushalt_stats.php');
-        const aktiverId = <?= $aktiverHaushalt ?? 'null' ?>;
+        var data = await App.api.get('/api/haushalt_stats.php');
+        var aktiverId = <?= $aktiverHaushalt ?? 'null' ?>;
 
         $('#totalHaushalte').text(data.haushalte.length);
         var totalEin = 0, totalAus = 0;
@@ -72,6 +46,14 @@ async function ladeHaushalte() {
         data.haushalte.forEach(function(h) {
             var istAktiv = h.id == aktiverId;
             var bilanzClass = h.bilanz >= 0 ? 'text-success' : 'text-danger';
+            var kannLoeschen = h.recht === 'besitzer' && data.haushalte.length > 1;
+            var kannWechseln = h.id != aktiverId;
+
+            var rechtBadge = '';
+            if (h.recht === 'besitzer') rechtBadge = '<span class="badge bg-success ms-1">Besitzer</span>';
+            else if (h.recht === 'schreiben') rechtBadge = '<span class="badge bg-info ms-1">Schreiben</span>';
+            else rechtBadge = '<span class="badge bg-secondary ms-1">Lesen</span>';
+
             grid.append(
                 '<div class="col-xl-4 col-md-6 mb-4">' +
                 '<div class="card shadow-sm h-100 ' + (istAktiv ? 'border-primary border-2' : '') + '">' +
@@ -79,9 +61,10 @@ async function ladeHaushalte() {
                 '<h6 class="mb-0"><i class="bi bi-house me-1"></i>' + h.name +
                 (h.ist_demo ? ' <span class="badge bg-warning text-dark ms-1">Demo</span>' : '') +
                 (istAktiv ? ' <span class="badge bg-light text-primary ms-1">Aktiv</span>' : '') +
+                rechtBadge +
                 '</h6><div>' +
-                (!istAktiv ? '<button class="btn btn-sm btn-outline-light me-1" onclick="wechsleHaushalt(' + h.id + ')" title="Wechseln"><i class="bi bi-arrow-left-right"></i></button>' : '') +
-                (data.haushalte.length > 1 ? '<button class="btn btn-sm btn-outline-danger" onclick="oeffneHaushaltLoeschen(' + h.id + ', \'' + h.name.replace(/'/g, "\\'") + '\')" title="Loeschen"><i class="bi bi-trash"></i></button>' : '') +
+                (kannWechseln ? '<button class="btn btn-sm btn-outline-' + (istAktiv ? 'light' : 'primary') + ' me-1" onclick="wechsleHaushalt(' + h.id + ')" title="Wechseln"><i class="bi bi-arrow-left-right"></i></button>' : '') +
+                (kannLoeschen ? '<button class="btn btn-sm btn-outline-danger" onclick="oeffneHaushaltLoeschen(' + h.id + ', \'' + h.name.replace(/'/g, "\\'") + '\')" title="Loeschen"><i class="bi bi-trash"></i></button>' : '') +
                 '</div></div>' +
                 '<div class="card-body">' +
                 '<div class="row text-center mb-3">' +
@@ -94,16 +77,12 @@ async function ladeHaushalte() {
                 '<tr><td class="text-muted">Kategorien</td><td class="text-end">' + h.kategorien + '</td></tr>' +
                 '<tr><td class="text-muted">Buchungen</td><td class="text-end">' + h.buchungen + '</td></tr>' +
                 '<tr><td class="text-muted">Zahlungen</td><td class="text-end">' + h.zahlungen + '</td></tr>' +
-                '<tr><td class="text-muted">Erstellt</td><td class="text-end">' + App.formatDate(h.created_at) + '</td></tr>' +
                 '</table></div></div></div>'
             );
         });
 
         $('#loading').hide();
         $('#inhalt').show();
-    } catch (error) {
-        console.error(error);
-        App.error('Fehler beim Laden der Haushalts-Daten');
-    }
+    } catch (error) { console.error(error); App.error('Fehler beim Laden'); }
 }
 </script>

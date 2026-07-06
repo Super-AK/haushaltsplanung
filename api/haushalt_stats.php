@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-require_once __DIR__ . "/../includes/db.php";
+require_once __DIR__ . '/../includes/db.php';
 requireLogin();
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -8,30 +8,34 @@ if ($method !== 'GET') { http_response_code(405); echo json_encode(['error' => '
 
 $jahr = (int)($_GET['jahr'] ?? date('Y'));
 
-// Alle Haushalte laden
-$stmt = $db->query('SELECT * FROM haushalte ORDER BY name');
+// Nur erlaubte Haushalte laden
+$erlaubt = getErlaubteHaushalte();
+if (empty($erlaubt)) {
+    echo json_encode(['jahr' => $jahr, 'haushalte' => []]);
+    exit;
+}
+
+$platzhalter = implode(',', array_fill(0, count($erlaubt), '?'));
+$stmt = $db->prepare("SELECT * FROM haushalte WHERE id IN ($platzhalter) ORDER BY name");
+$stmt->execute($erlaubt);
 $haushalte = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $ergebnis = [];
 foreach ($haushalte as $h) {
     $hid = $h['id'];
 
-    // Kategorien-Anzahl
     $stmt = $db->prepare('SELECT COUNT(*) as cnt FROM kategorien WHERE haushalt_id = ?');
     $stmt->execute([$hid]);
     $katCount = $stmt->fetch(PDO::FETCH_ASSOC)['cnt'];
 
-    // Buchungen-Anzahl
     $stmt = $db->prepare('SELECT COUNT(*) as cnt FROM buchungen WHERE haushalt_id = ?');
     $stmt->execute([$hid]);
     $buchCount = $stmt->fetch(PDO::FETCH_ASSOC)['cnt'];
 
-    // Zahlungen-Anzahl
     $stmt = $db->prepare('SELECT COUNT(*) as cnt FROM zahlungen z LEFT JOIN buchungen b ON z.buchung_id = b.id WHERE b.haushalt_id = ?');
     $stmt->execute([$hid]);
     $zahlCount = $stmt->fetch(PDO::FETCH_ASSOC)['cnt'];
 
-    // Jahresbilanz
     $stmt = $db->prepare("
         SELECT 
             COALESCE(SUM(CASE WHEN b.betrag > 0 THEN z.betrag ELSE 0 END), 0) as einnahmen,
@@ -42,10 +46,15 @@ foreach ($haushalte as $h) {
     $stmt->execute([$hid, (string)$jahr]);
     $bilanz = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Kontostand
     $stmt = $db->prepare('SELECT betrag FROM kontostand WHERE haushalt_id = ? ORDER BY datum DESC LIMIT 1');
     $stmt->execute([$hid]);
     $ks = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Recht des Users auf diesen Haushalt
+    $stmt = $db->prepare('SELECT recht FROM user_haushalte WHERE user_id = ? AND haushalt_id = ?');
+    $stmt->execute([$_SESSION['user_id'], $hid]);
+    $rechtRow = $stmt->fetch(PDO::FETCH_ASSOC);
+    $recht = $rechtRow ? $rechtRow['recht'] : (isAdmin() ? 'besitzer' : 'lesen');
 
     $ergebnis[] = [
         'id' => $hid,
@@ -58,7 +67,8 @@ foreach ($haushalte as $h) {
         'einnahmen' => $bilanz['einnahmen'],
         'ausgaben' => $bilanz['ausgaben'],
         'bilanz' => $bilanz['einnahmen'] - $bilanz['ausgaben'],
-        'kontostand' => $ks ? $ks['betrag'] : null
+        'kontostand' => $ks ? $ks['betrag'] : null,
+        'recht' => $recht
     ];
 }
 
