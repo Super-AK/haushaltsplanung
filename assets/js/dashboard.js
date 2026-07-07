@@ -4,9 +4,21 @@ var kategorienChart = null;
 $(document).ready(function() {
     ladeDashboard();
     $('#kontostandDatum').val(new Date().toISOString().split('T')[0]);
+    
+    // Form Submit
     $('#kontostandForm').on('submit', function(e) {
         e.preventDefault();
         speichereKontostand();
+    });
+    
+    // Edit Button
+    $('#btnKontostandEdit').on('click', function() {
+        bearbeiteKontostand();
+    });
+    
+    // Delete Button
+    $('#btnKontostandDelete').on('click', function() {
+        loescheKontostand();
     });
 });
 
@@ -15,7 +27,6 @@ async function ladeDashboard() {
         var dashboard = await App.api.get('/api/dashboard.php');
         var diagramme = await App.api.get('/api/diagramme.php');
         
-        // Kontostand anzeigen
         if (diagramme.kontostand && diagramme.kontostand.betrag) {
             $('#aktKontostand').text(App.formatCurrency(diagramme.kontostand.betrag));
             $('#aktKontostandDatum').text(App.formatDate(diagramme.kontostand.datum));
@@ -25,14 +36,12 @@ async function ladeDashboard() {
             $('#kontostandInfo').hide();
         }
         
-        // Jahresend-Prognose
         var dezSaldo = diagramme.kontostandProMonat['12'] || 0;
         var prognoseEl = $('#jahresEndPrognose');
         prognoseEl.text(App.formatCurrency(dezSaldo));
         prognoseEl.removeClass('text-success text-danger text-warning');
         prognoseEl.addClass(dezSaldo > 0 ? 'text-success' : dezSaldo < 0 ? 'text-danger' : 'text-warning');
         
-        // Kennzahlen
         $('#jahresEinnahmen').text(App.formatCurrency(dashboard.jahresBilanz.einnahmen));
         $('#jahresAusgaben').text(App.formatCurrency(dashboard.jahresBilanz.ausgaben));
         
@@ -46,9 +55,7 @@ async function ladeDashboard() {
         ersparnisEl.removeClass('text-success text-danger');
         ersparnisEl.addClass(dashboard.monatsBilanz.bilanz >= 0 ? 'text-success' : 'text-danger');
         
-        // Anstehende Kosten
-        var anstehendBody = $('#tabelleAnstehend tbody');
-        anstehendBody.empty();
+        var anstehendBody = $('#tabelleAnstehend tbody').empty();
         if (dashboard.anstehendeKosten.length === 0) {
             anstehendBody.append('<tr><td colspan="3" class="text-muted text-center">Keine anstehenden Kosten</td></tr>');
         } else {
@@ -57,9 +64,7 @@ async function ladeDashboard() {
             });
         }
         
-        // Letzte Transaktionen
-        var transBody = $('#tabelleTransaktionen tbody');
-        transBody.empty();
+        var transBody = $('#tabelleTransaktionen tbody').empty();
         if (dashboard.letzteTransaktionen.length === 0) {
             transBody.append('<tr><td colspan="3" class="text-muted text-center">Keine Transaktionen</td></tr>');
         } else {
@@ -70,7 +75,6 @@ async function ladeDashboard() {
             });
         }
         
-        // Diagramme
         zeichneMonatsChart(diagramme);
         zeichneKategorienChart(diagramme.kategorien);
         
@@ -103,7 +107,7 @@ async function speichereKontostand() {
         $('#kontostandBemerkung').val('');
         $('#kontostandDatum').val(new Date().toISOString().split('T')[0]);
         $('#kontostandForm').data('edit-id', null);
-        $('button[type=submit]').html('<i class="bi bi-check-circle me-1"></i>Kontostand speichern');
+        $('#btnKontostandSave').html('<i class="bi bi-check-circle me-1"></i>Kontostand speichern');
         await ladeDashboard();
     } catch (error) {
         console.error('Fehler:', error);
@@ -120,7 +124,7 @@ async function bearbeiteKontostand() {
         $('#kontostandDatum').val(k.datum);
         $('#kontostandBemerkung').val(k.bemerkung || '');
         $('#kontostandForm').data('edit-id', k.id);
-        $('button[type=submit]').html('<i class="bi bi-check-circle me-1"></i>Kontostand aktualisieren');
+        $('#btnKontostandSave').html('<i class="bi bi-check-circle me-1"></i>Kontostand aktualisieren');
         $('#kontostandBetrag').focus();
     } catch (error) {
         console.error('Fehler:', error);
@@ -132,11 +136,11 @@ async function loescheKontostand() {
     try {
         var kontostand = await App.api.get('/api/kontostand.php');
         if (kontostand.length === 0) { App.error('Kein Kontostand vorhanden'); return; }
-        if (!await App.confirm('Kontostand wirklich loeschen?')) return;
+        if (!confirm('Kontostand wirklich loeschen?')) return;
         await App.api.delete('/api/kontostand.php?id=' + kontostand[0].id);
         App.success('Kontostand geloescht');
         $('#kontostandForm').data('edit-id', null);
-        $('button[type=submit]').html('<i class="bi bi-check-circle me-1"></i>Kontostand speichern');
+        $('#btnKontostandSave').html('<i class="bi bi-check-circle me-1"></i>Kontostand speichern');
         await ladeDashboard();
     } catch (error) {
         console.error('Fehler:', error);

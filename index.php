@@ -87,8 +87,12 @@ require_once __DIR__ . '/includes/header.php';
                                 <span id="aktKontostandBemerkung" class="text-muted ms-2"></span>
                             </div>
                             <div>
-                                <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="bearbeiteKontostand()" title="Bearbeiten"><i class="bi bi-pencil"></i></button>
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="loescheKontostand()" title="Loeschen"><i class="bi bi-trash"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-primary me-1" id="btnKontostandEdit" title="Bearbeiten"><i class="bi bi-pencil"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" id="btnKontostandDelete" title="Loeschen"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                            <div>
                             </div>
                         </div>
                     </div>
@@ -108,8 +112,7 @@ require_once __DIR__ . '/includes/header.php';
                             </div>
                         </div>
                         <div class="mt-3">
-                            <button type="button" class="btn btn-danger me-2" id="kontostandLoeschen" style="display:none" onclick="loescheKontostand()"><i class="bi bi-trash me-1"></i>Loeschen</button>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" id="btnKontostandSave">
                                 <i class="bi bi-check-circle me-1"></i>Kontostand speichern
                             </button>
                         </div>
