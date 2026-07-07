@@ -99,6 +99,7 @@ require_once __DIR__ . '/includes/header.php';
                             </div>
                         </div>
                         <div class="mt-3">
+                            <button type="button" class="btn btn-danger me-2" id="kontostandLoeschen" style="display:none" onclick="loescheKontostand()"><i class="bi bi-trash me-1"></i>Loeschen</button>
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-check-circle me-1"></i>Kontostand speichern
                             </button>
