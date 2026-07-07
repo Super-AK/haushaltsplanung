@@ -12,6 +12,20 @@ switch ($method) {
         echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
         break;
 
+    case 'PUT':
+        $data = json_decode(file_get_contents('php://input'), true);
+        $id = $data['id'] ?? null;
+        if (!$id) { http_response_code(400); echo json_encode(['error' => 'ID erforderlich']); exit; }
+        $fields = []; $params = [];
+        foreach (['betrag', 'datum', 'bemerkung'] as $f) {
+            if (isset($data[$f])) { $fields[] = "$f = ?"; $params[] = $data[$f]; }
+        }
+        if (empty($fields)) { http_response_code(400); echo json_encode(['error' => 'Keine Felder']); exit; }
+        $params[] = $id; $params[] = $haushaltId;
+        $stmt = $db->prepare('UPDATE kontostand SET ' . implode(', ', $fields) . ' WHERE id = ? AND haushalt_id = ?');
+        $stmt->execute($params);
+        echo json_encode(['message' => 'Kontostand aktualisiert']);
+        break;
     case 'POST':
         $data = json_decode(file_get_contents('php://input'), true);
         if (!isset($data['betrag']) || empty($data['datum'])) {

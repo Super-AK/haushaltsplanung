@@ -80,8 +80,17 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
                 <div class="card-body">
                     <div id="kontostandInfo" style="display:none;" class="alert alert-info mb-3">
-                        <strong>Aktueller Stand:</strong> <span id="aktKontostand">0,00 €</span> 
-                        <span class="text-muted">(Stand: <span id="aktKontostandDatum">-</span>)</span>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Aktueller Stand:</strong> <span id="aktKontostand">0,00 EUR</span>
+                                <span class="text-muted">(Stand: <span id="aktKontostandDatum">-</span>)</span>
+                                <span id="aktKontostandBemerkung" class="text-muted ms-2"></span>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="bearbeiteKontostand()" title="Bearbeiten"><i class="bi bi-pencil"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="loescheKontostand()" title="Loeschen"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </div>
                     </div>
                     <form id="kontostandForm">
                         <div class="row g-3">
