@@ -92,10 +92,6 @@ require_once __DIR__ . '/includes/header.php';
                             </div>
                         </div>
                     </div>
-                            <div>
-                            </div>
-                        </div>
-                    </div>
                     <form id="kontostandForm">
                         <div class="row g-3">
                             <div class="col-md-4">
