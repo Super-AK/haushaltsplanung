@@ -22,7 +22,7 @@ require_once __DIR__ . '/../includes/header.php';
     <!-- Ueberblick -->
     <div class="tab-pane fade show active" id="tabUeberblick">
         <div class="card shadow-sm"><div class="card-body">
-            <h5>Haushaltsplanung v2.2</h5>
+            <h5>Haushaltsplanung v2.3</h5>
             <p class="lead">Verwalten Sie Einnahmen und Ausgaben fuer einen oder mehrere Haushalte mit Multi-User-Unterstuetzung.</p>
             <hr>
             <div class="row">
@@ -36,7 +36,8 @@ require_once __DIR__ . '/../includes/header.php';
                         <li>Kategorien fuer Einnahmen und Ausgaben</li>
                         <li>Wiederkehrende Buchungen mit Intervallen</li>
                         <li>Zahlungserfassung mit Historie</li>
-                        <li>Kontostand mit Jahresend-Prognose</li>
+                        <li>Kontostand: Erfassen, bearbeiten, loeschen</li>
+                        <li>Jahresend-Prognose basierend auf Kontostand</li>
                         <li>Daten aus anderen Haushalten kopieren</li>
                         <li>Massen-Loeschung mit Checkboxen</li>
                         <li>Dublikat-Erkennung beim Kopieren</li>
@@ -68,7 +69,6 @@ require_once __DIR__ . '/../includes/header.php';
             <p>Jeder Haushalt hat eigene Kategorien, Buchungen und Zahlungen. Admin sieht alle Haushalte mit Besitzer-Namen.</p>
 
             <h6 class="mt-4">Haushalte-Uebersicht</h6>
-            <p>Unter "Haushalte" in der Navbar:</p>
             <ul>
                 <li>Gesamtuebersicht mit Statistiken pro Haushalt</li>
                 <li><strong>Recht-Badge:</strong> Besitzer / Schreiben / Lesen</li>
@@ -77,15 +77,13 @@ require_once __DIR__ . '/../includes/header.php';
             </ul>
 
             <h6 class="mt-4">Haushalt wechseln</h6>
-            <p>Navbar-Dropdown (oben rechts) -> Haushalt auswaehlen.</p>
+            <p>Navbar-Dropdown -> Haushalt auswaehlen.</p>
 
             <h6 class="mt-4">Neuen Haushalt anlegen</h6>
             <p>Dropdown -> "Neuer Haushalt" -> Name eingeben -> optional Beispieldaten laden.</p>
-            <p><small class="text-muted">Der Ersteller wird automatisch als Besitzer eingetragen.</small></p>
 
             <h6 class="mt-4">Daten kopieren</h6>
             <p>Dropdown -> "Daten kopieren" -> Quell-Haushalt waehlen -> Kategorien/Buchungen/Zahlungen auswaehlen -> Kopieren.</p>
-            <p><small class="text-muted">Dublikate werden automatisch erkannt und uebersprungen.</small></p>
 
             <h6 class="mt-4">Haushalt loeschen</h6>
             <p>Nur Besitzer haben den Loesch-Button. Der letzte Haushalt kann nicht geloescht werden.</p>
@@ -126,8 +124,6 @@ require_once __DIR__ . '/../includes/header.php';
                     <tr><td><span class="badge badge-jaehrlich">Jaehrlich</span></td><td>Kfz-Steuer</td></tr>
                 </tbody>
             </table>
-
-            <div class="alert alert-info mt-3"><i class="bi bi-info-circle me-2"></i>Buchungen definieren nur, <em>wie oft</em> etwas gezahlt wird. Die tatsaechliche Zahlung erfassen Sie unter "Zahlungen".</div>
         </div></div>
     </div>
 
@@ -161,11 +157,19 @@ require_once __DIR__ . '/../includes/header.php';
                 <li><strong>Ersparnis (Monat)</strong> - Prognose aktueller Monat</li>
             </ul>
 
-            <h6 class="mt-4">Kontostand & Prognose</h6>
+            <h6 class="mt-4">Kontostand erfassen</h6>
             <ul>
-                <li>Kontostand erfassen: Betrag, Datum, optionale Bemerkung</li>
-                <li><strong>Jahresend-Prognose:</strong> Erwarteter Kontostand am 31.12.</li>
+                <li><strong>Aktueller Stand:</strong> Zeigt den letzten erfassten Kontostand mit Datum</li>
+                <li><strong>Bearbeiten</strong> (Bleistift-Button): Formular wird mit Werten befuellt</li>
+                <li><strong>Loeschen</strong> (Muelleimer-Button): Kontostand entfernen</li>
+                <li><strong>Speichern:</strong> Neuen Kontostand erfassen oder bestehenden aktualisieren</li>
+            </ul>
+
+            <h6 class="mt-4">Jahresend-Prognose</h6>
+            <ul>
+                <li><strong>Rechte Karte:</strong> Erwarteter Kontostand am 31.12.</li>
                 <li><strong>Blaue Linie:</strong> Kontostand-Verlauf ueber das Jahr</li>
+                <li>Berechnung: Startkapital + monatlicher Saldo</li>
             </ul>
 
             <h6 class="mt-4">Diagramme</h6>
@@ -226,7 +230,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <tr><td><code>/api/kategorien.php</code></td><td>GET, POST, PUT, DELETE</td><td>Kategorien CRUD</td></tr>
                     <tr><td><code>/api/buchungen.php</code></td><td>GET, POST, PUT, DELETE</td><td>Buchungen CRUD</td></tr>
                     <tr><td><code>/api/zahlungen.php</code></td><td>GET, POST, DELETE</td><td>Zahlungen erfassen</td></tr>
-                    <tr><td><code>/api/kontostand.php</code></td><td>GET, POST, DELETE</td><td>Kontostand verwalten</td></tr>
+                    <tr><td><code>/api/kontostand.php</code></td><td>GET, POST, PUT, DELETE</td><td>Kontostand CRUD</td></tr>
                     <tr><td><code>/api/dashboard.php</code></td><td>GET</td><td>Dashboard-Daten</td></tr>
                     <tr><td><code>/api/diagramme.php</code></td><td>GET</td><td>Diagramm-Daten + Prognose</td></tr>
                 </tbody>

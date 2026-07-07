@@ -1,4 +1,4 @@
-# Haushaltsplanung v2.2
+# Haushaltsplanung v2.3
 
 WebApp zur Einnahmen-/Ausgabenverwaltung mit Multi-User-Unterstuetzung, geteilten Haushalten und Jahresend-Prognose.
 
@@ -7,7 +7,7 @@ WebApp zur Einnahmen-/Ausgabenverwaltung mit Multi-User-Unterstuetzung, geteilte
 - **Multi-User** mit Rollen (Admin/Benutzer)
 - **Haushalte teilen** zwischen Usern mit Berechtigungen (Lesen/Schreiben/Besitzer)
 - **Dashboard** mit Kennzahlen und Chart.js-Diagrammen
-- **Kontostand-Prognose** bis Jahresende
+- **Kontostand** erfassen, bearbeiten, loeschen mit Jahresend-Prognose
 - **Kategorien** fuer Einnahmen, Fixkosten, Variable Kosten
 - **Buchungen** mit wiederkehrenden Intervallen
 - **Zahlungserfassung** mit Historie
@@ -59,7 +59,7 @@ git pull
 │   ├── kategorien.php           # Kategorien CRUD
 │   ├── buchungen.php            # Buchungen CRUD
 │   ├── zahlungen.php            # Zahlungen erfassen
-│   ├── kontostand.php           # Kontostand verwalten
+│   ├── kontostand.php           # Kontostand CRUD
 │   ├── dashboard.php            # Dashboard-Daten
 │   └── diagramme.php            # Diagramm-Daten + Prognose
 ├── pages/                       # Seiten
@@ -81,6 +81,18 @@ git pull
 │   └── migrate.php              # Schema-Migrationen
 └── sqlite/                      # SQLite Datenbank (nicht in Git)
 ```
+
+## Versionen
+
+| Version | Beschreibung |
+|---------|-------------|
+| v2.3.0 | Kontostand: Bearbeiten/Loeschen, Bugfixes |
+| v2.2.0 | Admin sieht Besitzer-Namen, Update-sicheres System |
+| v2.1.0 | Multi-User mit Rollen + Login |
+| v2.0.0 | Multi-Haushalt + Kopier-Features |
+| v1.2.0 | Haushalte-Uebersicht + Hilfe |
+| v1.1.0 | Multi-Haushalt |
+| v1.0.0 | Initial commit |
 
 ## Lizenz
 
