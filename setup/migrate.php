@@ -123,6 +123,24 @@ function fuehreMigrationenAus($db) {
         $db->prepare("INSERT OR IGNORE INTO migrations (name) VALUES (?)")->execute(['v2_1_users']);
     }
 
+    // === Migration 2: Demo-User Zugriff auf Demo-Haushalt ===
+    // Demo-User (benutzername='demo') erhaelt Schreibzugriff auf alle
+    // Haushalte mit ist_demo=1, damit er den Demo-Haushalt sehen und testen kann.
+    if (!in_array('v2_3_demo_haushalt_zugriff', $bereitsDa)) {
+        $stmt = $db->query("SELECT uh.haushalt_id FROM user_haushalte uh
+            JOIN users u ON uh.user_id = u.id
+            JOIN haushalte h ON uh.haushalt_id = h.id
+            WHERE u.benutzername = 'demo' AND h.ist_demo = 1
+            LIMIT 1");
+        if (!$stmt->fetch()) {
+            $db->exec("INSERT OR IGNORE INTO user_haushalte (user_id, haushalt_id, recht)
+                SELECT u.id, h.id, 'schreiben'
+                FROM users u, haushalte h
+                WHERE u.benutzername = 'demo' AND h.ist_demo = 1");
+        }
+        $db->prepare("INSERT OR IGNORE INTO migrations (name) VALUES (?)")->execute(['v2_3_demo_haushalt_zugriff']);
+    }
+
     // === Hier weitere Migrationen einfuegen ===
 
     return [];

@@ -44,6 +44,22 @@ try {
 require_once __DIR__ . '/../setup/migrate.php';
 fuehreMigrationenAus($db);
 
+// Session-Wiederherstellung aus Cookie-Fallback (Remote-Zuverlaessigkeit)
+// Wenn die PHP-Session ueber AJAX verloren geht, wird der Login aus dem
+// user_id-Cookie wiederhergestellt (gesetzt bei login()).
+if (empty($_SESSION['user_id']) && !empty($_COOKIE['user_id'])) {
+    $stmt = $db->prepare('SELECT id, benutzername, rolle FROM users WHERE id = ? AND aktiv = 1');
+    $stmt->execute([(int)$_COOKIE['user_id']]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($user) {
+        $_SESSION['user_id'] = (int)$user['id'];
+        $_SESSION['user_rolle'] = $user['rolle'];
+        $_SESSION['user_name'] = $user['benutzername'];
+    } else {
+        setcookie('user_id', '', time() - 3600, '/');
+    }
+}
+
 // === AUTH FUNKTIONEN ===
 
 function isLoggedIn() {
