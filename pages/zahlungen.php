@@ -107,4 +107,4 @@ require_once __DIR__ . '/../includes/header.php';
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
 <!-- Page Script -->
-<script src="<?= BASE_URL ?>/assets/js/zahlungen.js"></script>
+<script src="<?= BASE_URL ?>/assets/js/zahlungen.js?v=<?= filemtime(__DIR__ . '/../assets/js/zahlungen.js') ?>"></script>

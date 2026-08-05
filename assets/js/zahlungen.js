@@ -81,9 +81,9 @@ async function ladeZahlungen() {
                 
                 if (z.zahlungsdatum === heute) {
                     if (z.typ === 'einnahme') {
-                        heuteEinnahmen += z.betrag;
+                        heuteEinnahmen += Math.abs(z.betrag);
                     } else {
-                        heuteAusgaben += z.betrag;
+                        heuteAusgaben += Math.abs(z.betrag);
                     }
                 }
             });

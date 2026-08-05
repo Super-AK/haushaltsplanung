@@ -52,4 +52,4 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
-<script src="<?= BASE_URL ?>/assets/js/buchungen.js"></script>
+<script src="<?= BASE_URL ?>/assets/js/buchungen.js?v=<?= filemtime(__DIR__ . '/../assets/js/buchungen.js') ?>"></script>
