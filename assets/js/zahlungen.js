@@ -14,6 +14,9 @@ $(document).ready(async function() {
         e.preventDefault();
         await speichereZahlung();
     });
+
+    // Filter reagieren sofort auf Aenderungen
+    $('#filterZahlungKategorie, #filterZahlungTyp, #filterZahlungVon, #filterZahlungBis').on('change', ladeZahlungen);
     
     // Betrag automatisch setzen basierend auf Buchung
     $('#zahlungBuchung').on('change', function() {
