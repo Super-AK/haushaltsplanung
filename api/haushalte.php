@@ -50,6 +50,24 @@ switch ($method) {
             }
             setAktivenHaushalt((int)$data['haushalt_id']);
             echo json_encode(['message' => 'Haushalt gewechselt', 'haushalt_id' => (int)$data['haushalt_id']]);
+        } elseif (!empty($data['id']) && isset($data['name'])) {
+            if (!istBerechtigt((int)$data['id'], 'schreiben')) {
+                http_response_code(403);
+                echo json_encode(['error' => 'Keine Berechtigung zum Umbenennen']);
+                exit;
+            }
+            $name = trim($data['name']);
+            if ($name === '') {
+                http_response_code(400);
+                echo json_encode(['error' => 'Name erforderlich']);
+                exit;
+            }
+            $stmt = $db->prepare('UPDATE haushalte SET name = ? WHERE id = ?');
+            $stmt->execute([$name, (int)$data['id']]);
+            echo json_encode(['message' => 'Haushalt umbenannt']);
+        } else {
+            http_response_code(400);
+            echo json_encode(['error' => 'Ungueltige Anfrage']);
         }
         break;
 

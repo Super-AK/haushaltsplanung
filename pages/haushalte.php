@@ -20,6 +20,14 @@ require_once __DIR__ . '/../includes/header.php';
     <div class="row" id="haushaltGrid"></div>
 </div>
 
+<div class="modal fade" id="haushaltUmbenennenModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Haushalt umbenennen</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <div class="mb-3"><label class="form-label">Name *</label><input type="text" class="form-control" id="umbenennenName" required></div>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button><button type="button" class="btn btn-primary" onclick="speichereHaushaltUmbenennen()">Speichern</button></div>
+</div></div></div>
+
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
 
 <script>
@@ -48,6 +56,7 @@ async function ladeHaushalte() {
             var bilanzClass = h.bilanz >= 0 ? 'text-success' : 'text-danger';
             var kannLoeschen = h.recht === 'besitzer' && data.haushalte.length > 1;
             var kannWechseln = h.id != aktiverId;
+            var kannUmbenennen = h.recht !== 'lesen';
 
             var rechtBadge = '';
             if (h.recht === 'besitzer') rechtBadge = '<span class="badge bg-success ms-1">Besitzer</span>';
@@ -64,6 +73,7 @@ async function ladeHaushalte() {
                 rechtBadge + (h.besitzer ? ' <small class="text-muted">(' + h.besitzer + ')</small>' : '') +
                 '</h6><div>' +
                 (kannWechseln ? '<button class="btn btn-sm btn-outline-' + (istAktiv ? 'light' : 'primary') + ' me-1" onclick="wechsleHaushalt(' + h.id + ')" title="Wechseln"><i class="bi bi-arrow-left-right"></i></button>' : '') +
+                (kannUmbenennen ? '<button class="btn btn-sm btn-outline-' + (istAktiv ? 'light' : 'primary') + ' me-1" onclick="oeffneHaushaltUmbenennen(' + h.id + ', \'' + h.name.replace(/'/g, "\\'") + '\')" title="Umbenennen"><i class="bi bi-pencil"></i></button>' : '') +
                 (kannLoeschen ? '<button class="btn btn-sm btn-outline-danger" onclick="oeffneHaushaltLoeschen(' + h.id + ', \'' + h.name.replace(/'/g, "\\'") + '\')" title="Loeschen"><i class="bi bi-trash"></i></button>' : '') +
                 '</div></div>' +
                 '<div class="card-body">' +
@@ -86,6 +96,23 @@ async function ladeHaushalte() {
     } catch (error) { console.error(error); App.error('Fehler beim Laden'); }
 }
 var loeschId = null;
+var umbenennenId = null;
+
+function oeffneHaushaltUmbenennen(id, name) {
+    umbenennenId = id;
+    $('#umbenennenName').val(name);
+    new bootstrap.Modal(document.getElementById('haushaltUmbenennenModal')).show();
+}
+
+function speichereHaushaltUmbenennen() {
+    var name = $('#umbenennenName').val().trim();
+    if (!name) { App.error('Name erforderlich'); return; }
+    App.api.put('/api/haushalte.php', { id: umbenennenId, name: name }).then(function(r) {
+        if (r.error) { App.error(r.error); return; }
+        App.success('Haushalt umbenannt');
+        window.location.reload();
+    }).catch(function(e) { App.error('Fehler beim Umbenennen'); });
+}
 
 function oeffneHaushaltLoeschen(id, name) {
     if (!confirm("Haushalt " + name + " wirklich loeschen?")) return;
