@@ -36,7 +36,7 @@ async function ladeDashboard() {
             $('#kontostandInfo').hide();
         }
         
-        var dezSaldo = diagramme.kontostandProMonat['12'] || 0;
+        var dezSaldo = diagramme.jahresendPrognose != null ? diagramme.jahresendPrognose : (diagramme.kontostandProMonat['12'] || 0);
         var prognoseEl = $('#jahresEndPrognose');
         prognoseEl.text(App.formatCurrency(dezSaldo));
         prognoseEl.removeClass('text-success text-danger text-warning');

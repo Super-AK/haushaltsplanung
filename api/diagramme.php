@@ -71,16 +71,24 @@ for ($m = 1; $m <= 12; $m++) {
 }
 
 // Kumulierter Kontostand
+// Jeder Monatspunkt = Kontostand zu BEGINN des Monats. Im Monat des erfassten
+// Standes ist das der erfasste Betrag (z.B. -5.000 am 01.01.). Ab dem
+// Folgemonat werden die Bewegungen des Vormonats hinzugerechnet, damit die
+// Linie am erfassten Stand startet statt schon die ersten Buchungen
+// vorwegzunehmen.
 $kontostandProMonat = [];
 $saldo = $kontostandBetrag;
+$datumMonat = (int)date('m', strtotime($kontostandDatum));
 for ($m = 1; $m <= 12; $m++) {
     $monatStr = str_pad($m, 2, '0', STR_PAD_LEFT);
-    $saldaoA = $prognose[$monatStr]['einnahmen'] - $prognose[$monatStr]['ausgaben'];
-    if ($m >= (int)date('m', strtotime($kontostandDatum))) {
-        $saldo += $saldaoA;
+    if ($m >= $datumMonat + 1) {
+        $vormonat = str_pad($m - 1, 2, '0', STR_PAD_LEFT);
+        $saldo += $prognose[$vormonat]['einnahmen'] - $prognose[$vormonat]['ausgaben'];
     }
     $kontostandProMonat[$monatStr] = $saldo;
 }
+// Prognose Jahresende: Kontostand zu Beginn des Dezembers + Dezember-Bewegungen
+$jahresendPrognose = $kontostandProMonat['12'] + ($prognose['12']['einnahmen'] - $prognose['12']['ausgaben']);
 
 // Kategorien-Verteilung
 $stmt = $db->prepare("
@@ -100,6 +108,7 @@ echo json_encode([
     'ist' => $monatsDaten,
     'prognose' => $prognose,
     'kontostandProMonat' => $kontostandProMonat,
+    'jahresendPrognose' => $jahresendPrognose,
     'kategorien' => $kategorienVerteilung
 ]);
 
