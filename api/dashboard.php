@@ -86,7 +86,7 @@ function berechneNaechstenTermin($startDatum, $intervall, $abDatum) {
     $start = new DateTime($startDatum);
     $ab = new DateTime($abDatum);
     if ($start > $ab) return $start->format('Y-m-d');
-    $intervalle = ['woechentlich' => '+7 days', 'monatlich' => '+1 month', 'vierteljaehrlich' => '+3 months', 'jaehrlich' => '+1 year'];
+    $intervalle = ['woechentlich' => '+7 days', 'monatlich' => '+1 month', 'vierteljaehrlich' => '+3 months', 'halbjaehrlich' => '+6 months', 'jaehrlich' => '+1 year'];
     if (!isset($intervalle[$intervall])) return null;
     $termin = clone $start;
     while ($termin < $ab) $termin->modify($intervalle[$intervall]);

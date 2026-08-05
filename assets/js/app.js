@@ -9,7 +9,7 @@ const App = {
     },
     formatCurrency(amount) { return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount); },
     formatDate(dateStr) { if (!dateStr) return '-'; return new Date(dateStr).toLocaleDateString('de-DE'); },
-    getIntervallText(i) { return { 'einmalig': 'Einmalig', 'woechentlich': 'Woechentlich', 'monatlich': 'Monatlich', 'vierteljaehrlich': 'Vierteljaehrlich', 'jaehrlich': 'Jaehrlich' }[i] || i; },
+    getIntervallText(i) { return { 'einmalig': 'Einmalig', 'woechentlich': 'Woechentlich', 'monatlich': 'Monatlich', 'vierteljaehrlich': 'Vierteljaehrlich', 'halbjaehrlich': 'Halbjaehrlich', 'jaehrlich': 'Jaehrlich' }[i] || i; },
     getIntervallBadge(i) { return '<span class="badge badge-' + i + '">' + this.getIntervallText(i) + '</span>'; },
     success(msg) { this.showAlert(msg, 'success'); },
     error(msg) { this.showAlert(msg, 'danger'); },

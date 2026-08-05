@@ -111,7 +111,7 @@ require_once __DIR__ . '/../includes/header.php';
     <div class="tab-pane fade" id="tabBuchungen">
         <div class="card shadow-sm"><div class="card-body">
             <h5><i class="bi bi-journal-text me-2"></i>Buchungen verwalten</h5>
-            <p>Buchungen sind <strong>wiederkehrende Zahlungsstroeme</strong>.</p>
+            <p>Buchungen sind <strong>wiederkehrende Zahlungsstroeme</strong>. Beim Speichern werden automatisch alle faelligen Zahlungen bis heute erzeugt, damit Auswertungen und Diagramme immer aktuelle Werte zeigen.</p>
 
             <h6 class="mt-4">Intervalle</h6>
             <table class="table table-sm mt-2">
@@ -121,6 +121,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <tr><td><span class="badge badge-woechentlich">Woechentlich</span></td><td>Wocheneinkauf</td></tr>
                     <tr><td><span class="badge badge-monatlich">Monatlich</span></td><td>Miete, Gehalt</td></tr>
                     <tr><td><span class="badge badge-vierteljaehrlich">Vierteljaehrlich</span></td><td>Versicherung</td></tr>
+                    <tr><td><span class="badge badge-halbjaehrlich">Halbjaehrlich</span></td><td>Grosse Wartung, Sonderzahlungen</td></tr>
                     <tr><td><span class="badge badge-jaehrlich">Jaehrlich</span></td><td>Kfz-Steuer</td></tr>
                 </tbody>
             </table>

@@ -5,6 +5,7 @@ requireLogin();
 $haushaltId = getAktivenHaushalt();
 $jahr = (int)($_GET['jahr'] ?? date('Y'));
 $aktMonat = (int)date('m');
+$heute = date('Y-m-d');
 
 // Kontostand
 $stmt = $db->prepare('SELECT * FROM kontostand WHERE haushalt_id = ? ORDER BY datum DESC LIMIT 1');
@@ -47,15 +48,15 @@ for ($m = 1; $m <= 12; $m++) {
     if ($m < $aktMonat) {
         $prognose[$monatStr] = $monatsDaten[$monatStr];
     } elseif ($m == $aktMonat) {
+        // Ist-Werte sind massgebend. Nur Buchungen, deren naechster Termin
+        // im aktuellen Monat liegt und noch nicht erreicht ist, werden
+        // zusaetzlich projiziert (kein restFaktor-Duplikat).
         $prognose[$monatStr] = $monatsDaten[$monatStr];
-        $tageImMonat = cal_days_in_month(CAL_GREGORIAN, $m, $jahr);
-        $tageBisher = (int)date('d');
-        $restFaktor = $tageBisher > 0 ? ($tageImMonat - $tageBisher) / $tageBisher : 1;
         foreach ($alleBuchungen as $b) {
             $termin = berechneNaechstenTermin($b['start_datum'], $b['intervall'], "$jahr-$monatStr-01");
-            if ($termin && substr($termin, 0, 7) == "$jahr-$monatStr") {
-                if ($b['betrag'] > 0) $prognose[$monatStr]['einnahmen'] += $b['betrag'] * $restFaktor;
-                else $prognose[$monatStr]['ausgaben'] += abs($b['betrag']) * $restFaktor;
+            if ($termin && substr($termin, 0, 7) == "$jahr-$monatStr" && $termin > $heute) {
+                if ($b['betrag'] > 0) $prognose[$monatStr]['einnahmen'] += $b['betrag'];
+                else $prognose[$monatStr]['ausgaben'] += abs($b['betrag']);
             }
         }
     } else {
@@ -106,10 +107,9 @@ function berechneNaechstenTermin($startDatum, $intervall, $abDatum) {
     $start = new DateTime($startDatum);
     $ab = new DateTime($abDatum);
     if ($start > $ab) return $start->format('Y-m-d');
-    $intervalle = ['woechentlich' => '+7 days', 'monatlich' => '+1 month', 'vierteljaehrlich' => '+3 months', 'jaehrlich' => '+1 year'];
+    $intervalle = ['woechentlich' => '+7 days', 'monatlich' => '+1 month', 'vierteljaehrlich' => '+3 months', 'halbjaehrlich' => '+6 months', 'jaehrlich' => '+1 year'];
     if (!isset($intervalle[$intervall])) return null;
     $termin = clone $start;
-    $max = 60;
-    while ($termin < $ab && $max-- > 0) $termin->modify($intervalle[$intervall]);
+    while ($termin < $ab) $termin->modify($intervalle[$intervall]);
     return $termin->format('Y-m-d');
 }

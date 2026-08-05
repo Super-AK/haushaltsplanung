@@ -5,6 +5,10 @@
  */
 
 function fuehreMigrationenAus($db) {
+    // Kurzzeitiges Warten auf konkurrierende Zugriffe (php-fpm-Pool),
+    // damit parallele Requests die Migration nicht zerstoeren.
+    $db->exec('PRAGMA busy_timeout = 20000');
+
     // Pruefe ob Kern-Tabellen vorhanden sind
     $stmt = $db->query("SELECT name FROM sqlite_master WHERE type='table' AND name='haushalte'");
     if (!$stmt->fetch()) {
@@ -139,6 +143,86 @@ function fuehreMigrationenAus($db) {
                 WHERE u.benutzername = 'demo' AND h.ist_demo = 1");
         }
         $db->prepare("INSERT OR IGNORE INTO migrations (name) VALUES (?)")->execute(['v2_3_demo_haushalt_zugriff']);
+    }
+
+    // === Migration 3: Halbjaehrliches Intervall + automatische Zahlungen ===
+    if (!in_array('v2_4_hj_auto_zahlungen', $bereitsDa)) {
+        // Seriell gegen konkurrierende Requests absichern: Die Migration
+        // laeuft in einer IMMEDIATE-Transaktion. foreign_keys wird VOR dem
+        // Transaktionsstart deaktiviert, damit ALTER TABLE ... RENAME die
+        // FK-Referenzen der Kind-Tabelle nicht auf den Alt-Namen umbiegt.
+        $db->exec('PRAGMA foreign_keys=OFF');
+        $db->exec('BEGIN IMMEDIATE');
+        try {
+            // 3a: buchungen-Tabelle neu aufbauen, damit das CHECK-Constraint
+            //     das Intervall 'halbjaehrlich' erlaubt (SQLite kann CHECK nicht aendern).
+            $stmt = $db->query("SELECT sql FROM sqlite_master WHERE type='table' AND name='buchungen'");
+            $schema = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($schema && strpos($schema['sql'], 'halbjaehrlich') === false) {
+                $db->exec('ALTER TABLE buchungen RENAME TO buchungen_alt');
+                $db->exec("CREATE TABLE buchungen (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    haushalt_id INTEGER NOT NULL,
+                    kategorie_id INTEGER NOT NULL,
+                    betrag REAL NOT NULL,
+                    beschreibung TEXT,
+                    intervall TEXT NOT NULL CHECK(intervall IN ('einmalig', 'woechentlich', 'monatlich', 'vierteljaehrlich', 'halbjaehrlich', 'jaehrlich')),
+                    start_datum TEXT NOT NULL,
+                    end_datum TEXT,
+                    aktiv INTEGER DEFAULT 1,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    FOREIGN KEY (haushalt_id) REFERENCES haushalte(id) ON DELETE CASCADE,
+                    FOREIGN KEY (kategorie_id) REFERENCES kategorien(id) ON DELETE CASCADE
+                )");
+                $db->exec("INSERT INTO buchungen (id, haushalt_id, kategorie_id, betrag, beschreibung, intervall, start_datum, end_datum, aktiv, created_at)
+                    SELECT id, haushalt_id, kategorie_id, betrag, beschreibung, intervall, start_datum, end_datum, aktiv, created_at FROM buchungen_alt");
+                $db->exec('DROP TABLE buchungen_alt');
+                $db->exec('CREATE INDEX IF NOT EXISTS idx_buchungen_haushalt ON buchungen(haushalt_id)');
+                $db->exec('CREATE INDEX IF NOT EXISTS idx_buchungen_kategorie ON buchungen(kategorie_id)');
+            } else {
+                // Rebuild bereits erfolgt (z.B. unterbrochener Lauf): Alt-Tabelle aufraeumen
+                $db->exec('DROP TABLE IF EXISTS buchungen_alt');
+            }
+
+            // 3a2: FK-Reparatur - falls ein frueherer (unterbrochener) Lauf
+            //      die FK-Referenz von zahlungen auf buchungen_alt umgebogen hat.
+            $fkSql = $db->query("SELECT sql FROM sqlite_master WHERE type='table' AND name='zahlungen'")->fetch(PDO::FETCH_ASSOC);
+            if ($fkSql && strpos($fkSql['sql'], 'buchungen_alt') !== false) {
+                $db->exec('ALTER TABLE zahlungen RENAME TO zahlungen_alt2');
+                $db->exec("CREATE TABLE zahlungen (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    buchung_id INTEGER NOT NULL,
+                    betrag REAL NOT NULL,
+                    zahlungsdatum TEXT NOT NULL,
+                    bemerkung TEXT,
+                    automatisch INTEGER DEFAULT 0,
+                    FOREIGN KEY (buchung_id) REFERENCES buchungen(id) ON DELETE CASCADE
+                )");
+                $db->exec('INSERT INTO zahlungen (id, buchung_id, betrag, zahlungsdatum, bemerkung, automatisch)
+                    SELECT id, buchung_id, betrag, zahlungsdatum, bemerkung, automatisch FROM zahlungen_alt2');
+                $db->exec('DROP TABLE zahlungen_alt2');
+            }
+
+            // 3b: automatisch-Spalte in zahlungen ergaenzen
+            $cols = $db->query('PRAGMA table_info(zahlungen)')->fetchAll(PDO::FETCH_COLUMN, 1);
+            if (!in_array('automatisch', $cols)) {
+                $db->exec('ALTER TABLE zahlungen ADD COLUMN automatisch INTEGER DEFAULT 0');
+            }
+
+            // 3c: Fehlende Zahlungen fuer alle aktiven Buchungen nachziehen
+            $stmt = $db->query('SELECT id FROM buchungen WHERE aktiv = 1');
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                erzeugeAutomatischeZahlungen($db, (int)$row['id']);
+            }
+
+            $db->prepare("INSERT OR IGNORE INTO migrations (name) VALUES (?)")->execute(['v2_4_hj_auto_zahlungen']);
+            $db->exec('COMMIT');
+            $db->exec('PRAGMA foreign_keys=ON');
+        } catch (Throwable $e) {
+            if ($db->inTransaction()) { $db->exec('ROLLBACK'); }
+            $db->exec('PRAGMA foreign_keys=ON');
+            throw $e;
+        }
     }
 
     // === Hier weitere Migrationen einfuegen ===

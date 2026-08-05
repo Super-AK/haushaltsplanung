@@ -24,7 +24,9 @@ switch ($method) {
         }
         $stmt = $db->prepare('INSERT INTO buchungen (haushalt_id, kategorie_id, betrag, beschreibung, intervall, start_datum, end_datum) VALUES (?, ?, ?, ?, ?, ?, ?)');
         $stmt->execute([$haushaltId, $data['kategorie_id'], $data['betrag'], $data['beschreibung'] ?? null, $data['intervall'], $data['start_datum'], $data['end_datum'] ?? null]);
-        echo json_encode(['id' => $db->lastInsertId(), 'message' => 'Buchung erstellt']);
+        $neueId = (int)$db->lastInsertId();
+        erzeugeAutomatischeZahlungen($db, $neueId);
+        echo json_encode(['id' => $neueId, 'message' => 'Buchung erstellt']);
         break;
 
     case 'PUT':
@@ -39,6 +41,8 @@ switch ($method) {
         $params[] = $id; $params[] = $haushaltId;
         $stmt = $db->prepare('UPDATE buchungen SET ' . implode(', ', $fields) . ' WHERE id = ? AND haushalt_id = ?');
         $stmt->execute($params);
+        $db->prepare('DELETE FROM zahlungen WHERE buchung_id = ? AND automatisch = 1')->execute([$id]);
+        erzeugeAutomatischeZahlungen($db, (int)$id);
         echo json_encode(['message' => 'Buchung aktualisiert']);
         break;
 

@@ -23,6 +23,7 @@
 .badge-woechentlich { background-color: #0dcaf0; }
 .badge-monatlich { background-color: #198754; }
 .badge-vierteljaehrlich { background-color: #ffc107; color: #000; }
+.badge-halbjaehrlich { background-color: #6f42c1; }
 .badge-jaehrlich { background-color: #dc3545; }
 
 /* Tabellen */

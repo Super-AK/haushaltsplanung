@@ -46,7 +46,7 @@ try {
         kategorie_id INTEGER NOT NULL,
         betrag REAL NOT NULL,
         beschreibung TEXT,
-        intervall TEXT NOT NULL CHECK(intervall IN ('einmalig', 'woechentlich', 'monatlich', 'vierteljaehrlich', 'jaehrlich')),
+        intervall TEXT NOT NULL CHECK(intervall IN ('einmalig', 'woechentlich', 'monatlich', 'vierteljaehrlich', 'halbjaehrlich', 'jaehrlich')),
         start_datum TEXT NOT NULL,
         end_datum TEXT,
         aktiv INTEGER DEFAULT 1,

@@ -167,3 +167,69 @@ function setAktivenHaushalt($id) {
     $_SESSION['haushalt_id'] = (int)$id;
     setcookie('haushalt_id', $id, time() + 86400 * 30, '/');
 }
+
+// === AUTO-ZAHLUNGEN ===
+
+/**
+ * Erzeugt fuer eine aktive Buchung automatisch alle faelligen Zahlungen
+ * (Intervall-Termine) bis heute. Nur das laufende Kalenderjahr wird befuellt,
+ * da sich Auswertungen darauf beziehen. Bereits vorhandene Zahlungen
+ * (manuell oder automatisch) werden nicht dupliziert.
+ */
+function erzeugeAutomatischeZahlungen($db, $buchungId) {
+    $stmt = $db->prepare('SELECT * FROM buchungen WHERE id = ?');
+    $stmt->execute([$buchungId]);
+    $b = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$b || (int)$b['aktiv'] !== 1) return;
+
+    $heute = new DateTime(date('Y-m-d'));
+    $heute->setTime(0, 0, 0);
+    $aktuellesJahr = date('Y');
+
+    $intervalle = [
+        'woechentlich' => '+7 days',
+        'monatlich' => '+1 month',
+        'vierteljaehrlich' => '+3 months',
+        'halbjaehrlich' => '+6 months',
+        'jaehrlich' => '+1 year'
+    ];
+    if ($b['intervall'] === 'einmalig') {
+        $start = new DateTime($b['start_datum']);
+        $start->setTime(0, 0, 0);
+        if ($start > $heute || $start->format('Y') !== $aktuellesJahr) return;
+        $check = $db->prepare('SELECT COUNT(*) FROM zahlungen WHERE buchung_id = ? AND zahlungsdatum = ?');
+        $check->execute([$buchungId, $start->format('Y-m-d')]);
+        if ($check->fetchColumn() == 0) {
+            $db->prepare('INSERT INTO zahlungen (buchung_id, betrag, zahlungsdatum, bemerkung, automatisch) VALUES (?, ?, ?, ?, 1)')
+                ->execute([$buchungId, $b['betrag'], $start->format('Y-m-d'), 'automatisch']);
+        }
+        return;
+    }
+    if (!isset($intervalle[$b['intervall']])) return;
+
+    $start = new DateTime($b['start_datum']);
+    $start->setTime(0, 0, 0);
+    if ($start > $heute) return;
+
+    $end = null;
+    if (!empty($b['end_datum'])) {
+        $end = new DateTime($b['end_datum']);
+        $end->setTime(0, 0, 0);
+    }
+
+    $check = $db->prepare('SELECT COUNT(*) FROM zahlungen WHERE buchung_id = ? AND zahlungsdatum = ?');
+    $insert = $db->prepare('INSERT INTO zahlungen (buchung_id, betrag, zahlungsdatum, bemerkung, automatisch) VALUES (?, ?, ?, ?, 1)');
+    $termin = clone $start;
+    $max = 5000;
+    while ($termin <= $heute && $max-- > 0) {
+        $datumStr = $termin->format('Y-m-d');
+        if ($end && $termin > $end) break;
+        if ($termin->format('Y') === $aktuellesJahr) {
+            $check->execute([$buchungId, $datumStr]);
+            if ($check->fetchColumn() == 0) {
+                $insert->execute([$buchungId, $b['betrag'], $datumStr, 'automatisch']);
+            }
+        }
+        $termin->modify($intervalle[$b['intervall']]);
+    }
+}

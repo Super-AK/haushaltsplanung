@@ -1,4 +1,4 @@
-# Haushaltsplanung v2.3
+# Haushaltsplanung v2.4
 
 WebApp zur Einnahmen-/Ausgabenverwaltung mit Multi-User-Unterstuetzung, geteilten Haushalten und Jahresend-Prognose.
 
@@ -9,7 +9,7 @@ WebApp zur Einnahmen-/Ausgabenverwaltung mit Multi-User-Unterstuetzung, geteilte
 - **Dashboard** mit Kennzahlen und Chart.js-Diagrammen
 - **Kontostand** erfassen, bearbeiten, loeschen mit Jahresend-Prognose
 - **Kategorien** fuer Einnahmen, Fixkosten, Variable Kosten
-- **Buchungen** mit wiederkehrenden Intervallen
+- **Buchungen** mit wiederkehrenden Intervallen (inkl. halbjaehrlich) und automatisch erzeugten Zahlungen
 - **Zahlungserfassung** mit Historie
 - **Daten kopieren** zwischen Haushalten mit Dublikat-Erkennung
 - **Massen-Loeschung** fuer Kategorien und Buchungen
@@ -33,7 +33,11 @@ cp -r haushaltsplanung/* /var/www/html/
 ## Updates
 
 ```bash
+# Lokal
 cd /var/www/html
+git pull
+# Remote (apps.knutas.de)
+cd /var/www/apps.knutas.de/haushaltsplanung
 git pull
 # Datenbank bleibt erhalten, Migrationen laufen automatisch
 ```
@@ -86,6 +90,7 @@ git pull
 
 | Version | Beschreibung |
 |---------|-------------|
+| v2.4.0 | Halbjaehrliches Intervall, automatische Zahlungen aus Buchungen, Prognose-Bugfixes |
 | v2.3.0 | Kontostand: Bearbeiten/Loeschen, Bugfixes |
 | v2.2.0 | Admin sieht Besitzer-Namen, Update-sicheres System |
 | v2.1.0 | Multi-User mit Rollen + Login |
