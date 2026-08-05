@@ -193,9 +193,22 @@ function erzeugeAutomatischeZahlungen($db, $buchungId) {
         'halbjaehrlich' => '+6 months',
         'jaehrlich' => '+1 year'
     ];
+
+    $parseDatum = function ($wert) {
+        if (empty($wert)) return null;
+        try {
+            $dt = new DateTime($wert);
+            $dt->setTime(0, 0, 0);
+            return $dt;
+        } catch (Throwable $e) {
+            return null;
+        }
+    };
+
+    $start = $parseDatum($b['start_datum']);
+    if (!$start) return;
+
     if ($b['intervall'] === 'einmalig') {
-        $start = new DateTime($b['start_datum']);
-        $start->setTime(0, 0, 0);
         if ($start > $heute || $start->format('Y') !== $aktuellesJahr) return;
         $check = $db->prepare('SELECT COUNT(*) FROM zahlungen WHERE buchung_id = ? AND zahlungsdatum = ?');
         $check->execute([$buchungId, $start->format('Y-m-d')]);
@@ -207,15 +220,9 @@ function erzeugeAutomatischeZahlungen($db, $buchungId) {
     }
     if (!isset($intervalle[$b['intervall']])) return;
 
-    $start = new DateTime($b['start_datum']);
-    $start->setTime(0, 0, 0);
     if ($start > $heute) return;
 
-    $end = null;
-    if (!empty($b['end_datum'])) {
-        $end = new DateTime($b['end_datum']);
-        $end->setTime(0, 0, 0);
-    }
+    $end = $parseDatum($b['end_datum'] ?? null);
 
     $check = $db->prepare('SELECT COUNT(*) FROM zahlungen WHERE buchung_id = ? AND zahlungsdatum = ?');
     $insert = $db->prepare('INSERT INTO zahlungen (buchung_id, betrag, zahlungsdatum, bemerkung, automatisch) VALUES (?, ?, ?, ?, 1)');
