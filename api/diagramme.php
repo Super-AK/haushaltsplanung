@@ -70,6 +70,12 @@ for ($m = 1; $m <= 12; $m++) {
     }
 }
 
+$prognoseChart = [];
+for ($m = 1; $m <= 12; $m++) {
+    $monatStr = str_pad($m, 2, '0', STR_PAD_LEFT);
+    $prognoseChart[$monatStr] = ($m < $aktMonat) ? ['einnahmen' => 0, 'ausgaben' => 0] : $prognose[$monatStr];
+}
+
 // Kumulierter Kontostand
 // Jeder Monatspunkt = Kontostand zu BEGINN des Monats. Im Monat des erfassten
 // Standes ist das der erfasste Betrag (z.B. -5.000 am 01.01.). Ab dem
@@ -106,7 +112,7 @@ echo json_encode([
     'kontostand' => ['betrag' => $kontostandBetrag, 'datum' => $kontostandDatum],
     'monate' => ['01','02','03','04','05','06','07','08','09','10','11','12'],
     'ist' => $monatsDaten,
-    'prognose' => $prognose,
+    'prognose' => $prognoseChart,
     'kontostandProMonat' => $kontostandProMonat,
     'jahresendPrognose' => $jahresendPrognose,
     'kategorien' => $kategorienVerteilung
