@@ -7,6 +7,8 @@ $(document).ready(async function() {
     $('#buchungForm').on('submit', function(e) { e.preventDefault(); speichereBuchung(); });
     $('#buchungKategorie').on('change', anwendeTypVorzeichen);
     $('#buchungBetrag').on('input', anwendeTypVorzeichen);
+    // Filter reagieren sofort auf Aenderungen
+    $('#filterKategorie, #filterIntervall, #filterAktiv').on('change', ladeBuchungen);
 });
 
 function anwendeTypVorzeichen() {

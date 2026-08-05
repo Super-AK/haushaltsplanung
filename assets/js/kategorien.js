@@ -3,6 +3,8 @@ var ausgewaehlt = {};
 $(document).ready(function() {
     ladeKategorien();
     $('#kategorieForm').on('submit', function(e) { e.preventDefault(); speichereKategorie(); });
+    // Filter reagieren sofort auf Aenderungen
+    $('#filterTyp, #filterArt, #filterAktiv').on('change', ladeKategorien);
 });
 
 async function ladeKategorien() {
