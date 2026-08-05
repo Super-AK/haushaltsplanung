@@ -1,65 +1,86 @@
 <?php
 /**
  * Demo-Daten fuer einen Haushalt (nur wenn keine vorhanden)
+ *
+ * $refreshZahlungen = true: bestehende Zahlungen des Haushalts werden
+ * ersetzt (z.B. um Demo-Haushalte nach einem Bugfix zu aktualisieren).
+ * Kategorien und Buchungen werden dabei NICHT angefasst.
  */
-function ladeDemoDaten($db, $haushaltId) {
-    // Pruefe ob schon Daten vorhanden
+function ladeDemoDaten($db, $haushaltId, $refreshZahlungen = false) {
+    // Pruefe ob Kategorien schon vorhanden
     $stmt = $db->prepare('SELECT COUNT(*) as cnt FROM kategorien WHERE haushalt_id = ?');
     $stmt->execute([$haushaltId]);
-    if ($stmt->fetch(PDO::FETCH_ASSOC)['cnt'] > 0) {
+    $hatKategorien = $stmt->fetch(PDO::FETCH_ASSOC)['cnt'] > 0;
+
+    if ($hatKategorien && !$refreshZahlungen) {
         return; // Bereits Daten vorhanden
     }
 
-    $kategorien = [
-        ['Gehalt', 'einnahme', 'fix', '#1cc88a'],
-        ['Freelance', 'einnahme', 'variabel', '#36b9cc'],
-        ['Zinsen/Dividenden', 'einnahme', 'variabel', '#f6c23e'],
-        ['Miete', 'ausgabe', 'fix', '#e74a3b'],
-        ['Internet/Telefon', 'ausgabe', 'fix', '#fd7e14'],
-        ['Versicherung', 'ausgabe', 'fix', '#6f42c1'],
-        ['Lebensmittel', 'ausgabe', 'variabel', '#20c9a7'],
-        ['Transport', 'ausgabe', 'variabel', '#0dcaf0'],
-        ['Freizeit', 'ausgabe', 'variabel', '#ffc107'],
-        ['Kleidung', 'ausgabe', 'variabel', '#d63384'],
-        ['Gesundheit', 'ausgabe', 'variabel', '#198754'],
-    ];
+    if (!$hatKategorien) {
+        $kategorien = [
+            ['Gehalt', 'einnahme', 'fix', '#1cc88a'],
+            ['Freelance', 'einnahme', 'variabel', '#36b9cc'],
+            ['Zinsen/Dividenden', 'einnahme', 'variabel', '#f6c23e'],
+            ['Miete', 'ausgabe', 'fix', '#e74a3b'],
+            ['Internet/Telefon', 'ausgabe', 'fix', '#fd7e14'],
+            ['Versicherung', 'ausgabe', 'fix', '#6f42c1'],
+            ['Lebensmittel', 'ausgabe', 'variabel', '#20c9a7'],
+            ['Transport', 'ausgabe', 'variabel', '#0dcaf0'],
+            ['Freizeit', 'ausgabe', 'variabel', '#ffc107'],
+            ['Kleidung', 'ausgabe', 'variabel', '#d63384'],
+            ['Gesundheit', 'ausgabe', 'variabel', '#198754'],
+        ];
 
-    $stmt = $db->prepare('INSERT INTO kategorien (haushalt_id, name, typ, art, farbe) VALUES (?, ?, ?, ?, ?)');
-    foreach ($kategorien as $k) {
-        $stmt->execute([$haushaltId, $k[0], $k[1], $k[2], $k[3]]);
+        $stmt = $db->prepare('INSERT INTO kategorien (haushalt_id, name, typ, art, farbe) VALUES (?, ?, ?, ?, ?)');
+        foreach ($kategorien as $k) {
+            $stmt->execute([$haushaltId, $k[0], $k[1], $k[2], $k[3]]);
+        }
+
+        // Kategorie-IDs holen
+        $stmt = $db->prepare('SELECT id FROM kategorien WHERE haushalt_id = ? ORDER BY id');
+        $stmt->execute([$haushaltId]);
+        $katIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        $jahresanfang = date('Y-01-01');
+        $buchungen = [
+            [0, 3000, 'Monatsgehalt', 'monatlich', $jahresanfang],
+            [1, 500, 'Freelance-Auftrag', 'monatlich', $jahresanfang],
+            [2, 50, 'Zinsen Girokonto', 'vierteljaehrlich', $jahresanfang],
+            [3, -1200, 'Warmmiete', 'monatlich', $jahresanfang],
+            [4, -40, 'Internet + Handy', 'monatlich', $jahresanfang],
+            [5, -180, 'Krankenversicherung', 'vierteljaehrlich', $jahresanfang],
+            [6, -400, 'Wocheneinkauf', 'monatlich', $jahresanfang],
+            [7, -150, 'OePNV + Tanken', 'monatlich', $jahresanfang],
+            [8, -100, 'Kino, Hobbys', 'monatlich', $jahresanfang],
+            [9, -50, 'Kleidung', 'monatlich', $jahresanfang],
+            [10, -30, 'Apotheke', 'monatlich', $jahresanfang],
+        ];
+
+        $stmt = $db->prepare('INSERT INTO buchungen (haushalt_id, kategorie_id, betrag, beschreibung, intervall, start_datum) VALUES (?, ?, ?, ?, ?, ?)');
+        foreach ($buchungen as $b) {
+            $stmt->execute([$haushaltId, $katIds[$b[0]], $b[1], $b[2], $b[3], $b[4]]);
+        }
     }
 
-    // Kategorie-IDs holen
-    $stmt = $db->prepare('SELECT id FROM kategorien WHERE haushalt_id = ? ORDER BY id');
+    // Bei Refresh: bestehende Zahlungen dieses Haushalts entfernen
+    if ($refreshZahlungen) {
+        $db->prepare('DELETE FROM zahlungen WHERE buchung_id IN (SELECT id FROM buchungen WHERE haushalt_id = ?)')
+            ->execute([$haushaltId]);
+    }
+
+    // Idempotent: wenn bereits Zahlungen vorhanden, nichts tun
+    $stmt = $db->prepare('SELECT COUNT(*) as cnt FROM zahlungen z JOIN buchungen b ON z.buchung_id = b.id WHERE b.haushalt_id = ?');
     $stmt->execute([$haushaltId]);
-    $katIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-    $jahresanfang = date('Y-01-01');
-    $buchungen = [
-        [0, 3000, 'Monatsgehalt', 'monatlich', $jahresanfang],
-        [1, 500, 'Freelance-Auftrag', 'monatlich', $jahresanfang],
-        [2, 50, 'Zinsen Girokonto', 'vierteljaehrlich', $jahresanfang],
-        [3, -1200, 'Warmmiete', 'monatlich', $jahresanfang],
-        [4, -40, 'Internet + Handy', 'monatlich', $jahresanfang],
-        [5, -180, 'Krankenversicherung', 'vierteljaehrlich', $jahresanfang],
-        [6, -400, 'Wocheneinkauf', 'monatlich', $jahresanfang],
-        [7, -150, 'OePNV + Tanken', 'monatlich', $jahresanfang],
-        [8, -100, 'Kino, Hobbys', 'monatlich', $jahresanfang],
-        [9, -50, 'Kleidung', 'monatlich', $jahresanfang],
-        [10, -30, 'Apotheke', 'monatlich', $jahresanfang],
-    ];
-
-    $stmt = $db->prepare('INSERT INTO buchungen (haushalt_id, kategorie_id, betrag, beschreibung, intervall, start_datum) VALUES (?, ?, ?, ?, ?, ?)');
-    foreach ($buchungen as $b) {
-        $stmt->execute([$haushaltId, $katIds[$b[0]], $b[1], $b[2], $b[3], $b[4]]);
+    if ($stmt->fetch(PDO::FETCH_ASSOC)['cnt'] > 0) {
+        return;
     }
 
-    // Zahlungen (letzte 3 Monate)
-    $monate = [
-        date('Y-m-d', strtotime('-3 months')),
-        date('Y-m-d', strtotime('-2 months')),
-        date('Y-m-d', strtotime('-1 months')),
-    ];
+    // Zahlungen: ganzes laufendes Jahr (Januar bis aktueller Monat),
+    // damit Auswertungen und Diagramme das ganze Jahr abdecken.
+    $monate = [];
+    for ($m = 1; $m <= (int)date('m'); $m++) {
+        $monate[] = date('Y-m-01', mktime(0, 0, 0, $m, 1));
+    }
 
     $bStmt = $db->prepare('SELECT id, betrag, intervall FROM buchungen WHERE haushalt_id = ?');
     $bStmt->execute([$haushaltId]);
