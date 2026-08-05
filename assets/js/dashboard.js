@@ -158,6 +158,22 @@ function zeichneMonatsChart(data) {
     var prognoseAus = data.monate.map(function(m) { return data.prognose[m] ? data.prognose[m].ausgaben : 0; });
     var kontostandLinie = data.monate.map(function(m) { return data.kontostandProMonat ? data.kontostandProMonat[m] : null; });
     
+    var yMin = 0, yMax, y1Min = 0, y1Max = 1;
+    yMax = Math.max.apply(null, einnahmen.concat(ausgaben, prognoseEin, prognoseAus));
+    if (yMax <= 0) yMax = 1;
+    var kwerte = kontostandLinie.filter(function(v) { return v !== null && !isNaN(v); });
+    if (kwerte.length > 0) {
+        var kMin = Math.min.apply(null, kwerte);
+        var kMax = Math.max.apply(null, kwerte);
+        var kPad = Math.max((kMax - kMin) * 0.08, 1);
+        y1Min = kMin - kPad;
+        y1Max = kMax + kPad;
+        if (y1Min < 0 && y1Max > 0) {
+            var f = -y1Min / (y1Max - y1Min);
+            yMin = f * yMax / (f - 1);
+        }
+    }
+    
     if (monatsChart) monatsChart.destroy();
     monatsChart = new Chart(ctx, {
         type: 'bar',
@@ -175,8 +191,8 @@ function zeichneMonatsChart(data) {
             responsive: true, maintainAspectRatio: false,
             plugins: { legend: { position: 'bottom' } },
             scales: {
-                y: { beginAtZero: true, position: 'left', ticks: { callback: function(v) { return App.formatCurrency(v); } } },
-                y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: function(v) { return App.formatCurrency(v); } } }
+                y: { min: yMin, max: yMax, position: 'left', title: { display: true, text: 'Einnahmen / Ausgaben' }, ticks: { callback: function(v) { return App.formatCurrency(v); } } },
+                y1: { min: y1Min, max: y1Max, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Kontostand' }, ticks: { callback: function(v) { return App.formatCurrency(v); } } }
             }
         }
     });
