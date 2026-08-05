@@ -18,6 +18,9 @@ if (!defined('BASE_URL')) {
 
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
+// Inaktivitaets-Logout: nach 15 Minuten ohne Aktivitaet automatisch abmelden
+define('SESSION_INAKTIVITAET_SEKUNDEN', 900);
+
 $dbDir = __DIR__ . '/../sqlite';
 $dbPath = $dbDir . '/haushaltsplanung.db';
 
@@ -60,6 +63,17 @@ if (empty($_SESSION['user_id']) && !empty($_COOKIE['user_id'])) {
     }
 }
 
+// Session-TTL: nach SESSION_INAKTIVITAET_SEKUNDEN Sekunden ohne Aktivitaet abmelden
+if (!empty($_SESSION['user_id'])) {
+    $letzteAktivitaet = $_SESSION['letzte_aktivitaet'] ?? 0;
+    if ($letzteAktivitaet > 0 && (time() - $letzteAktivitaet) > SESSION_INAKTIVITAET_SEKUNDEN) {
+        logout();
+    } else {
+        $_SESSION['letzte_aktivitaet'] = time();
+        setcookie('user_id', $_SESSION['user_id'], time() + SESSION_INAKTIVITAET_SEKUNDEN, '/');
+    }
+}
+
 // === AUTH FUNKTIONEN ===
 
 function isLoggedIn() {
@@ -99,7 +113,8 @@ function login($benutzername, $passwort) {
         $_SESSION['user_id'] = (int)$user['id'];
         $_SESSION['user_rolle'] = $user['rolle'];
         $_SESSION['user_name'] = $user['benutzername'];
-        setcookie('user_id', $user['id'], time() + 86400 * 30, '/');
+        $_SESSION['letzte_aktivitaet'] = time();
+        setcookie('user_id', $user['id'], time() + SESSION_INAKTIVITAET_SEKUNDEN, '/');
         return true;
     }
     return false;
