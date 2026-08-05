@@ -40,10 +40,20 @@ switch ($method) {
 
     case 'DELETE':
         $id = $_GET['id'] ?? null;
-        if (!$id) { http_response_code(400); echo json_encode(['error' => 'ID erforderlich']); exit; }
-        $stmt = $db->prepare('DELETE FROM zahlungen WHERE id = ?');
-        $stmt->execute([$id]);
-        echo json_encode(['message' => 'Zahlung gelöscht']);
+        $ids = $_GET['ids'] ?? null;
+        if ($ids) {
+            $idList = array_map('intval', explode(',', $ids));
+            $platzhalter = implode(',', array_fill(0, count($idList), '?'));
+            $stmt = $db->prepare("DELETE FROM zahlungen WHERE id IN ($platzhalter)");
+            $stmt->execute($idList);
+            echo json_encode(['message' => count($idList) . ' Zahlungen geloescht']);
+        } elseif ($id) {
+            $stmt = $db->prepare('DELETE FROM zahlungen WHERE id = ?');
+            $stmt->execute([$id]);
+            echo json_encode(['message' => 'Zahlung gelöscht']);
+        } else {
+            http_response_code(400); echo json_encode(['error' => 'ID(s) erforderlich']);
+        }
         break;
 
     default:

@@ -2,6 +2,9 @@
  * Zahlungen - Verwaltung
  */
 
+var ausgewaehlteZahlungen = {};
+var aktuelleZahlungen = [];
+
 $(document).ready(async function() {
     await ladeBuchungenFuerAuswahl();
     await ladeKategorienFuerFilter();
@@ -84,11 +87,16 @@ async function ladeZahlungen() {
 }
 
 function renderZahlungen(zahlungen) {
+    aktuelleZahlungen = zahlungen;
+    ausgewaehlteZahlungen = {};
+    aktualisiereZahlungAuswahl();
+    $('#alleZahlungenAuswaehlen').prop('checked', false);
+
     const tbody = $('#zahlungenTabelle');
     tbody.empty();
 
     if (zahlungen.length === 0) {
-        tbody.append('<tr><td colspan="6" class="text-center text-muted">Keine Zahlungen gefunden</td></tr>');
+        tbody.append('<tr><td colspan="7" class="text-center text-muted">Keine Zahlungen gefunden</td></tr>');
         return;
     }
 
@@ -98,6 +106,7 @@ function renderZahlungen(zahlungen) {
 
         tbody.append(`
             <tr>
+                <td><input type="checkbox" class="form-check-input zahlung-check" value="${z.id}" onchange="toggleZahlungAuswahl(${z.id})"></td>
                 <td>${App.formatDate(z.zahlungsdatum)}</td>
                 <td>${z.kategorie_name}</td>
                 <td>${z.buchung_beschreibung || '-'}</td>
@@ -145,6 +154,75 @@ function setzeFilterZurueck() {
     $('#filterZahlungVon').val('');
     $('#filterZahlungBis').val('');
     ladeZahlungen();
+}
+
+function toggleZahlungAlleAuswahl() {
+    const checked = $('#alleZahlungenAuswaehlen').is(':checked');
+    $('.zahlung-check').each(function() {
+        $(this).prop('checked', checked);
+        toggleZahlungAuswahl(parseInt($(this).val()), checked);
+    });
+}
+
+function toggleZahlungAuswahl(id, checked) {
+    if (checked === undefined) checked = $('.zahlung-check[value="' + id + '"]').is(':checked');
+    if (checked) ausgewaehlteZahlungen[id] = true; else delete ausgewaehlteZahlungen[id];
+    aktualisiereZahlungAuswahl();
+}
+
+function aktualisiereZahlungAuswahl() {
+    const cnt = Object.keys(ausgewaehlteZahlungen).length;
+    $('#btnZahlungMassLoeschen').toggle(cnt > 0);
+    $('#btnZahlungMassExport').toggle(cnt > 0);
+    $('#anzahlZahlungAusgewaehlt').text(cnt);
+    $('#anzahlZahlungExport').text(cnt);
+}
+
+async function loescheAusgewaehlteZahlungen() {
+    if (!await App.confirm(Object.keys(ausgewaehlteZahlungen).length + ' Zahlungen wirklich loeschen?')) return;
+    try {
+        await App.api.delete('/api/zahlungen.php?ids=' + Object.keys(ausgewaehlteZahlungen).join(','));
+        App.success('Zahlungen geloescht');
+        ausgewaehlteZahlungen = {};
+        ladeZahlungen();
+    } catch (error) {
+        console.error('Fehler:', error);
+        App.error('Fehler beim Loeschen');
+    }
+}
+
+function exportiereCSV(zahlungen) {
+    if (!zahlungen || zahlungen.length === 0) { App.error('Keine Daten zum Exportieren'); return; }
+    const zeilen = [['Datum', 'Kategorie', 'Typ', 'Buchung', 'Betrag', 'Bemerkung']];
+    zahlungen.forEach(z => {
+        zeilen.push([
+            z.zahlungsdatum,
+            z.kategorie_name || '',
+            z.typ === 'einnahme' ? 'Einnahme' : 'Ausgabe',
+            z.buchung_beschreibung || '',
+            z.betrag,
+            z.bemerkung || ''
+        ]);
+    });
+    const csv = '\uFEFF' + zeilen.map(r => r.map(v => {
+        let s = String(v === null || v === undefined ? '' : v);
+        if (/[";\n\r]/.test(s)) { s = s.replace(/"/g, '""'); s = '"' + s + '"'; }
+        return s;
+    }).join(';')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'zahlungen_' + new Date().toISOString().split('T')[0] + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(url); }, 100);
+}
+
+function exportiereAusgewaehlteCSV() {
+    const ausgewaehlt = aktuelleZahlungen.filter(z => ausgewaehlteZahlungen[z.id]);
+    exportiereCSV(ausgewaehlt);
 }
 
 function oeffneModal() {

@@ -5,9 +5,17 @@ require_once __DIR__ . '/../includes/header.php';
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0"><i class="bi bi-cash-stack me-2"></i>Zahlungen erfassen</h4>
-    <button class="btn btn-primary" onclick="oeffneModal()">
-        <i class="bi bi-plus-circle me-1"></i>Neue Zahlung
-    </button>
+    <div>
+        <button class="btn btn-danger me-2" id="btnZahlungMassLoeschen" style="display:none" onclick="loescheAusgewaehlteZahlungen()">
+            <i class="bi bi-trash me-1"></i>Ausgewaehlte loeschen (<span id="anzahlZahlungAusgewaehlt">0</span>)
+        </button>
+        <button class="btn btn-success me-2" id="btnZahlungMassExport" style="display:none" onclick="exportiereAusgewaehlteCSV()">
+            <i class="bi bi-file-earmark-arrow-down me-1"></i>Export CSV (<span id="anzahlZahlungExport">0</span>)
+        </button>
+        <button class="btn btn-primary" onclick="oeffneModal()">
+            <i class="bi bi-plus-circle me-1"></i>Neue Zahlung
+        </button>
+    </div>
 </div>
 
 <!-- Zusammenfassung -->
@@ -46,8 +54,9 @@ require_once __DIR__ . '/../includes/header.php';
             <div class="col-md-3"><label class="form-label">Typ</label><select class="form-select" id="filterZahlungTyp"><option value="">Alle</option><option value="einnahme">Einnahme</option><option value="ausgabe">Ausgabe</option></select></div>
             <div class="col-md-2"><label class="form-label">Von</label><input type="date" class="form-control" id="filterZahlungVon"></div>
             <div class="col-md-2"><label class="form-label">Bis</label><input type="date" class="form-control" id="filterZahlungBis"></div>
-            <div class="col-md-2 d-flex align-items-end">
+            <div class="col-md-2 d-grid gap-2 align-content-end">
                 <button class="btn btn-outline-secondary w-100" onclick="ladeZahlungen()"><i class="bi bi-search me-1"></i>Filtern</button>
+                <button class="btn btn-outline-success w-100" onclick="exportiereCSV(aktuelleZahlungen)"><i class="bi bi-download me-1"></i>CSV exportieren</button>
             </div>
         </div>
         <div class="mt-2 text-end">
@@ -63,6 +72,7 @@ require_once __DIR__ . '/../includes/header.php';
             <table class="table table-hover">
                 <thead>
                     <tr>
+                        <th><input type="checkbox" class="form-check-input" id="alleZahlungenAuswaehlen" onchange="toggleZahlungAlleAuswahl()"></th>
                         <th>Datum</th>
                         <th>Kategorie</th>
                         <th>Buchung</th>
