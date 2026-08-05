@@ -4,6 +4,7 @@
 
 $(document).ready(async function() {
     await ladeBuchungenFuerAuswahl();
+    await ladeKategorienFuerFilter();
     ladeZahlungen();
     
     $('#zahlungForm').on('submit', async function(e) {
@@ -45,64 +46,105 @@ async function ladeBuchungenFuerAuswahl() {
     }
 }
 
+async function ladeKategorienFuerFilter() {
+    try {
+        const kategorien = await App.api.get('/api/kategorien.php');
+        const sel = $('#filterZahlungKategorie');
+        kategorien.forEach(k => {
+            const label = k.name + ' (' + (k.typ === 'einnahme' ? 'Einnahme' : 'Ausgabe') + ')';
+            sel.append(`<option value="${k.id}">${label}</option>`);
+        });
+    } catch (error) {
+        console.error('Fehler:', error);
+    }
+}
+
 async function ladeZahlungen() {
     try {
-        const zahlungen = await App.api.get('/api/zahlungen.php');
-        
-        const tbody = $('#zahlungenTabelle');
-        tbody.empty();
-        
-        // Tagesbilanz berechnen
-        const heute = new Date().toISOString().split('T')[0];
-        let heuteEinnahmen = 0;
-        let heuteAusgaben = 0;
-        
-        if (zahlungen.length === 0) {
-            tbody.append('<tr><td colspan="6" class="text-center text-muted">Keine Zahlungen gefunden</td></tr>');
-        } else {
-            zahlungen.forEach(z => {
-                const betragClass = z.typ === 'einnahme' ? 'text-success' : 'text-danger';
-                const prefix = z.typ === 'einnahme' ? '+' : '-';
-                
-                tbody.append(`
-                    <tr>
-                        <td>${App.formatDate(z.zahlungsdatum)}</td>
-                        <td>${z.kategorie_name}</td>
-                        <td>${z.buchung_beschreibung || '-'}</td>
-                        <td class="${betragClass} fw-bold">${prefix}${App.formatCurrency(Math.abs(z.betrag))}</td>
-                        <td>${z.bemerkung || '-'}</td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-danger" onclick="loescheZahlung(${z.id})">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `);
-                
-                if (z.zahlungsdatum === heute) {
-                    if (z.typ === 'einnahme') {
-                        heuteEinnahmen += Math.abs(z.betrag);
-                    } else {
-                        heuteAusgaben += Math.abs(z.betrag);
-                    }
-                }
-            });
-        }
-        
-        // Tagesbilanz anzeigen
-        $('#heuteEinnahmen').text(App.formatCurrency(heuteEinnahmen));
-        $('#heuteAusgaben').text(App.formatCurrency(heuteAusgaben));
-        
-        const bilanz = heuteEinnahmen - heuteAusgaben;
-        const bilanzEl = $('#heuteBilanz');
-        bilanzEl.text(App.formatCurrency(bilanz));
-        bilanzEl.removeClass('text-success text-danger');
-        bilanzEl.addClass(bilanz >= 0 ? 'text-success' : 'text-danger');
-        
+        const alle = await App.api.get('/api/zahlungen.php');
+        aktualisiereTagesbilanz(alle);
+
+        const params = new URLSearchParams();
+        const kid = $('#filterZahlungKategorie').val();
+        const typ = $('#filterZahlungTyp').val();
+        const von = $('#filterZahlungVon').val();
+        const bis = $('#filterZahlungBis').val();
+        if (kid) params.append('kategorie_id', kid);
+        if (typ) params.append('typ', typ);
+        if (von) params.append('von', von);
+        if (bis) params.append('bis', bis);
+
+        const liste = params.toString() ? await App.api.get('/api/zahlungen.php?' + params.toString()) : alle;
+        renderZahlungen(liste);
+
     } catch (error) {
         console.error('Fehler:', error);
         App.error('Fehler beim Laden der Zahlungen');
     }
+}
+
+function renderZahlungen(zahlungen) {
+    const tbody = $('#zahlungenTabelle');
+    tbody.empty();
+
+    if (zahlungen.length === 0) {
+        tbody.append('<tr><td colspan="6" class="text-center text-muted">Keine Zahlungen gefunden</td></tr>');
+        return;
+    }
+
+    zahlungen.forEach(z => {
+        const betragClass = z.typ === 'einnahme' ? 'text-success' : 'text-danger';
+        const prefix = z.typ === 'einnahme' ? '+' : '-';
+
+        tbody.append(`
+            <tr>
+                <td>${App.formatDate(z.zahlungsdatum)}</td>
+                <td>${z.kategorie_name}</td>
+                <td>${z.buchung_beschreibung || '-'}</td>
+                <td class="${betragClass} fw-bold">${prefix}${App.formatCurrency(Math.abs(z.betrag))}</td>
+                <td>${z.bemerkung || '-'}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-danger" onclick="loescheZahlung(${z.id})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `);
+    });
+}
+
+function aktualisiereTagesbilanz(zahlungen) {
+    const heute = new Date().toISOString().split('T')[0];
+    let heuteEinnahmen = 0;
+    let heuteAusgaben = 0;
+
+    zahlungen.forEach(z => {
+        if (z.zahlungsdatum === heute) {
+            if (z.typ === 'einnahme') {
+                heuteEinnahmen += Math.abs(z.betrag);
+            } else {
+                heuteAusgaben += Math.abs(z.betrag);
+            }
+        }
+    });
+
+    // Tagesbilanz anzeigen
+    $('#heuteEinnahmen').text(App.formatCurrency(heuteEinnahmen));
+    $('#heuteAusgaben').text(App.formatCurrency(heuteAusgaben));
+
+    const bilanz = heuteEinnahmen - heuteAusgaben;
+    const bilanzEl = $('#heuteBilanz');
+    bilanzEl.text(App.formatCurrency(bilanz));
+    bilanzEl.removeClass('text-success text-danger');
+    bilanzEl.addClass(bilanz >= 0 ? 'text-success' : 'text-danger');
+}
+
+function setzeFilterZurueck() {
+    $('#filterZahlungKategorie').val('');
+    $('#filterZahlungTyp').val('');
+    $('#filterZahlungVon').val('');
+    $('#filterZahlungBis').val('');
+    ladeZahlungen();
 }
 
 function oeffneModal() {

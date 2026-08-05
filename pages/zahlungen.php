@@ -38,6 +38,24 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
+<!-- Filter -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3"><label class="form-label">Kategorie</label><select class="form-select" id="filterZahlungKategorie"><option value="">Alle</option></select></div>
+            <div class="col-md-3"><label class="form-label">Typ</label><select class="form-select" id="filterZahlungTyp"><option value="">Alle</option><option value="einnahme">Einnahme</option><option value="ausgabe">Ausgabe</option></select></div>
+            <div class="col-md-2"><label class="form-label">Von</label><input type="date" class="form-control" id="filterZahlungVon"></div>
+            <div class="col-md-2"><label class="form-label">Bis</label><input type="date" class="form-control" id="filterZahlungBis"></div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button class="btn btn-outline-secondary w-100" onclick="ladeZahlungen()"><i class="bi bi-search me-1"></i>Filtern</button>
+            </div>
+        </div>
+        <div class="mt-2 text-end">
+            <button class="btn btn-sm btn-link" onclick="setzeFilterZurueck()"><i class="bi bi-arrow-counterclockwise me-1"></i>Zuruecksetzen</button>
+        </div>
+    </div>
+</div>
+
 <!-- Tabelle -->
 <div class="card shadow-sm">
     <div class="card-body">

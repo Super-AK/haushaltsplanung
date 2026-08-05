@@ -7,20 +7,20 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch ($method) {
     case 'GET':
-        $filter = '';
-        $params = [];
-        if (isset($_GET['buchung_id'])) {
-            $filter = 'WHERE z.buchung_id = ?';
-            $params[] = $_GET['buchung_id'];
-        }
+        $where = ['b.haushalt_id = ?'];
+        $params = [$haushaltId];
+        if (isset($_GET['buchung_id']) && $_GET['buchung_id'] !== '') { $where[] = 'z.buchung_id = ?'; $params[] = $_GET['buchung_id']; }
+        if (isset($_GET['kategorie_id']) && $_GET['kategorie_id'] !== '') { $where[] = 'b.kategorie_id = ?'; $params[] = $_GET['kategorie_id']; }
+        if (isset($_GET['typ']) && $_GET['typ'] !== '') { $where[] = 'k.typ = ?'; $params[] = $_GET['typ']; }
+        if (isset($_GET['von']) && $_GET['von'] !== '') { $where[] = 'z.zahlungsdatum >= ?'; $params[] = $_GET['von']; }
+        if (isset($_GET['bis']) && $_GET['bis'] !== '') { $where[] = 'z.zahlungsdatum <= ?'; $params[] = $_GET['bis']; }
         $sql = "SELECT z.*, b.beschreibung as buchung_beschreibung, b.betrag as buchung_betrag,
                        k.name as kategorie_name, k.typ
                 FROM zahlungen z
                 LEFT JOIN buchungen b ON z.buchung_id = b.id
                 LEFT JOIN kategorien k ON b.kategorie_id = k.id
-                WHERE b.haushalt_id = ? " . ($filter ? str_replace('WHERE', 'AND', $filter) : '') . "
+                WHERE " . implode(' AND ', $where) . "
                 ORDER BY z.zahlungsdatum DESC";
-        array_unshift($params, $haushaltId);
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
         echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
