@@ -69,7 +69,7 @@ async function ladeZahlungen() {
                         <td>${App.formatDate(z.zahlungsdatum)}</td>
                         <td>${z.kategorie_name}</td>
                         <td>${z.buchung_beschreibung || '-'}</td>
-                        <td class="${betragClass} fw-bold">${prefix}${App.formatCurrency(z.betrag)}</td>
+                        <td class="${betragClass} fw-bold">${prefix}${App.formatCurrency(Math.abs(z.betrag))}</td>
                         <td>${z.bemerkung || '-'}</td>
                         <td>
                             <button class="btn btn-sm btn-outline-danger" onclick="loescheZahlung(${z.id})">

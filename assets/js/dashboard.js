@@ -71,7 +71,7 @@ async function ladeDashboard() {
             dashboard.letzteTransaktionen.forEach(function(t) {
                 var bc = t.typ === 'einnahme' ? 'text-success' : 'text-danger';
                 var p = t.typ === 'einnahme' ? '+' : '-';
-                transBody.append('<tr><td>' + App.formatDate(t.zahlungsdatum) + '</td><td>' + t.kategorie_name + '</td><td class="' + bc + '">' + p + App.formatCurrency(t.betrag) + '</td></tr>');
+                transBody.append('<tr><td>' + App.formatDate(t.zahlungsdatum) + '</td><td>' + t.kategorie_name + '</td><td class="' + bc + '">' + p + App.formatCurrency(Math.abs(t.betrag)) + '</td></tr>');
             });
         }
         

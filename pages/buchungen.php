@@ -41,7 +41,7 @@ require_once __DIR__ . '/../includes/header.php';
         <form id="buchungForm"><div class="modal-body">
             <input type="hidden" id="buchungId">
             <div class="mb-3"><label class="form-label">Kategorie *</label><select class="form-select" id="buchungKategorie" required></select></div>
-            <div class="mb-3"><label class="form-label">Betrag *</label><div class="input-group"><input type="number" step="0.01" class="form-control" id="buchungBetrag" required><span class="input-group-text">EUR</span></div><small class="text-muted">Positiv = Einnahme, Negativ = Ausgabe</small></div>
+            <div class="mb-3"><label class="form-label">Betrag *</label><div class="input-group"><input type="number" step="0.01" class="form-control" id="buchungBetrag" required><span class="input-group-text">EUR</span></div><small class="text-muted">Vorzeichen wird automatisch passend zur Kategorie gesetzt (Einnahme = positiv, Ausgabe = negativ)</small></div>
             <div class="mb-3"><label class="form-label">Beschreibung</label><input type="text" class="form-control" id="buchungBeschreibung"></div>
             <div class="mb-3"><label class="form-label">Intervall *</label><select class="form-select" id="buchungIntervall" required><option value="einmalig">Einmalig</option><option value="woechentlich">Woechentlich</option><option value="monatlich" selected>Monatlich</option><option value="vierteljaehrlich">Vierteljaehrlich</option><option value="halbjaehrlich">Halbjaehrlich</option><option value="jaehrlich">Jaehrlich</option></select></div>
             <div class="row"><div class="col-md-6 mb-3"><label class="form-label">Startdatum *</label><input type="date" class="form-control" id="buchungStart" required></div>

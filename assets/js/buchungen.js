@@ -5,7 +5,20 @@ $(document).ready(async function() {
     await ladeKategorienFuerFilter();
     ladeBuchungen();
     $('#buchungForm').on('submit', function(e) { e.preventDefault(); speichereBuchung(); });
+    $('#buchungKategorie').on('change', anwendeTypVorzeichen);
 });
+
+function anwendeTypVorzeichen() {
+    var kat = kategorienListe.find(function(k) { return k.id == $('#buchungKategorie').val(); });
+    if (!kat) return;
+    var betrag = parseFloat($('#buchungBetrag').val());
+    if (isNaN(betrag)) return;
+    if (kat.typ === 'ausgabe' && betrag > 0) {
+        $('#buchungBetrag').val(-betrag);
+    } else if (kat.typ === 'einnahme' && betrag < 0) {
+        $('#buchungBetrag').val(-betrag);
+    }
+}
 
 async function ladeKategorienFuerFilter() {
     try {
@@ -99,7 +112,13 @@ async function bearbeiteBuchung(id) {
 
 async function speichereBuchung() {
     var id = $('#buchungId').val();
-    var data = { kategorie_id: parseInt($('#buchungKategorie').val()), betrag: parseFloat($('#buchungBetrag').val()),
+    var kat = kategorienListe.find(function(k) { return k.id == $('#buchungKategorie').val(); });
+    var betrag = parseFloat($('#buchungBetrag').val());
+    if (kat && !isNaN(betrag)) {
+        if (kat.typ === 'ausgabe' && betrag > 0) betrag = -betrag;
+        if (kat.typ === 'einnahme' && betrag < 0) betrag = -betrag;
+    }
+    var data = { kategorie_id: parseInt($('#buchungKategorie').val()), betrag: betrag,
         beschreibung: $('#buchungBeschreibung').val() || null, intervall: $('#buchungIntervall').val(),
         start_datum: $('#buchungStart').val(), end_datum: $('#buchungEnde').val() || null,
         aktiv: $('#buchungAktiv').is(':checked') ? 1 : 0 };
