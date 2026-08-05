@@ -1,4 +1,4 @@
-# Haushaltsplanung v2.4
+# Haushaltsplanung v2.5
 
 WebApp zur Einnahmen-/Ausgabenverwaltung mit Multi-User-Unterstuetzung, geteilten Haushalten und Jahresend-Prognose.
 
@@ -6,13 +6,17 @@ WebApp zur Einnahmen-/Ausgabenverwaltung mit Multi-User-Unterstuetzung, geteilte
 
 - **Multi-User** mit Rollen (Admin/Benutzer)
 - **Haushalte teilen** zwischen Usern mit Berechtigungen (Lesen/Schreiben/Besitzer)
-- **Dashboard** mit Kennzahlen und Chart.js-Diagrammen
+- **Haushalte umbenennen** (mit Schreib-/Besitzer-Recht)
+- **Dashboard** mit Kennzahlen und Chart.js-Diagrammen (Y-Achsen synchronisiert)
 - **Kontostand** erfassen, bearbeiten, loeschen mit Jahresend-Prognose
 - **Kategorien** fuer Einnahmen, Fixkosten, Variable Kosten
 - **Buchungen** mit wiederkehrenden Intervallen (inkl. halbjaehrlich) und automatisch erzeugten Zahlungen
-- **Zahlungserfassung** mit Historie
+- **Zahlungserfassung** mit Historie, Filtern (Kategorie/Typ/Zeitraum) und CSV-Export
+- **Sofort-Filter**: Kategorien, Buchungen und Zahlungen reagieren direkt auf Filteraenderungen
+- **Massenaktionen** (Checkbox-Auswahl mit Loeschen/CSV-Export)
+- **Automatisches Vorzeichen** bei Buchungen/Zahlungen passend zur Kategorie
 - **Daten kopieren** zwischen Haushalten mit Dublikat-Erkennung
-- **Massen-Loeschung** fuer Kategorien und Buchungen
+- **Auto-Logout** nach 15 Minuten Inaktivitaet
 - **Update-sicher** via Migrationssystem
 
 ## Technologien
@@ -52,17 +56,19 @@ git pull
 ## Struktur
 
 ```
+├── README.md                    # Projektdokumentation
+├── CHANGELOG.md                 # Aenderungshistorie
 ├── index.php                    # Dashboard
 ├── api/                         # REST-API (JSON)
 │   ├── auth.php                 # Login/Logout
 │   ├── users.php                # User-Verwaltung (Admin)
 │   ├── user_haushalte.php       # User-Haushalt-Zuordnung
-│   ├── haushalte.php            # Haushalte CRUD
+│   ├── haushalte.php            # Haushalte CRUD (+ Umbenennen)
 │   ├── haushalt_stats.php       # Statistiken + Besitzer
 │   ├── haushalt_kopieren.php    # Daten kopieren
 │   ├── kategorien.php           # Kategorien CRUD
 │   ├── buchungen.php            # Buchungen CRUD
-│   ├── zahlungen.php            # Zahlungen erfassen
+│   ├── zahlungen.php            # Zahlungen erfassen (Filter + Massenaktionen)
 │   ├── kontostand.php           # Kontostand CRUD
 │   ├── dashboard.php            # Dashboard-Daten
 │   └── diagramme.php            # Diagramm-Daten + Prognose
@@ -75,10 +81,17 @@ git pull
 │   ├── zahlungen.php
 │   └── hilfe.php                # Hilfe & Anleitung
 ├── includes/                    # PHP-Includes
-│   ├── db.php                   # DB + Auth + Berechtigungen
+│   ├── db.php                   # DB + Auth + Berechtigungen + Session-TTL
 │   ├── header.php               # Navbar + Modals
 │   └── footer.php               # Footer + Scripts
 ├── assets/                      # CSS + JavaScript
+│   ├── css/app.css
+│   └── js/
+│       ├── app.js               # App-Grundlagen (API, Formate, Modals)
+│       ├── dashboard.js         # Dashboard
+│       ├── kategorien.js        # Kategorien-Seite
+│       ├── buchungen.js         # Buchungen-Seite
+│       └── zahlungen.js         # Zahlungen-Seite
 ├── setup/                       # Setup + Migrationen
 │   ├── init_db.php              # Erstinitialisierung
 │   ├── demo_data.php            # Demo-Daten
@@ -90,6 +103,8 @@ git pull
 
 | Version | Beschreibung |
 |---------|-------------|
+| v2.5.0 | Haushalt umbenennen, Filter unter Zahlungen, CSV-Export, Massenaktionen, Sofort-Filter, Auto-Logout (15 Min), Prognose-/Diagramm-Fixes, serverseitig erzwungenes Betragsvorzeichen |
+| v2.4.1 | Selbstheilende Migration (Remote-500), Intervall-Badge 'halbjaehrlich' sichtbar |
 | v2.4.0 | Halbjaehrliches Intervall, automatische Zahlungen aus Buchungen, Prognose-Bugfixes |
 | v2.3.0 | Kontostand: Bearbeiten/Loeschen, Bugfixes |
 | v2.2.0 | Admin sieht Besitzer-Namen, Update-sicheres System |
