@@ -6,6 +6,7 @@ $(document).ready(async function() {
     ladeBuchungen();
     $('#buchungForm').on('submit', function(e) { e.preventDefault(); speichereBuchung(); });
     $('#buchungKategorie').on('change', anwendeTypVorzeichen);
+    $('#buchungBetrag').on('input', anwendeTypVorzeichen);
 });
 
 function anwendeTypVorzeichen() {

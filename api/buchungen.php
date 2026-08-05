@@ -22,8 +22,15 @@ switch ($method) {
         if (empty($data['kategorie_id']) || !isset($data['betrag']) || empty($data['intervall']) || empty($data['start_datum'])) {
             http_response_code(400); echo json_encode(['error' => 'kategorie_id, betrag, intervall und start_datum sind erforderlich']); exit;
         }
+        $stmt = $db->prepare('SELECT typ FROM kategorien WHERE id = ? AND haushalt_id = ?');
+        $stmt->execute([$data['kategorie_id'], $haushaltId]);
+        $kTyp = $stmt->fetchColumn();
+        if ($kTyp === false) { http_response_code(400); echo json_encode(['error' => 'Kategorie nicht gefunden']); exit; }
+        $betrag = (float)$data['betrag'];
+        if ($kTyp === 'ausgabe' && $betrag > 0) $betrag = -$betrag;
+        if ($kTyp === 'einnahme' && $betrag < 0) $betrag = -$betrag;
         $stmt = $db->prepare('INSERT INTO buchungen (haushalt_id, kategorie_id, betrag, beschreibung, intervall, start_datum, end_datum) VALUES (?, ?, ?, ?, ?, ?, ?)');
-        $stmt->execute([$haushaltId, $data['kategorie_id'], $data['betrag'], $data['beschreibung'] ?? null, $data['intervall'], $data['start_datum'], $data['end_datum'] ?? null]);
+        $stmt->execute([$haushaltId, $data['kategorie_id'], $betrag, $data['beschreibung'] ?? null, $data['intervall'], $data['start_datum'], $data['end_datum'] ?? null]);
         $neueId = (int)$db->lastInsertId();
         erzeugeAutomatischeZahlungen($db, $neueId);
         echo json_encode(['id' => $neueId, 'message' => 'Buchung erstellt']);
@@ -33,6 +40,22 @@ switch ($method) {
         $data = json_decode(file_get_contents('php://input'), true);
         $id = $data['id'] ?? null;
         if (!$id) { http_response_code(400); echo json_encode(['error' => 'ID erforderlich']); exit; }
+        if (isset($data['betrag'])) {
+            $kid = $data['kategorie_id'] ?? null;
+            if (!$kid) {
+                $stmt = $db->prepare('SELECT kategorie_id FROM buchungen WHERE id = ?');
+                $stmt->execute([$id]);
+                $kid = $stmt->fetchColumn();
+            }
+            if ($kid) {
+                $stmt = $db->prepare('SELECT typ FROM kategorien WHERE id = ? AND haushalt_id = ?');
+                $stmt->execute([$kid, $haushaltId]);
+                $kTyp = $stmt->fetchColumn();
+                $betrag = (float)$data['betrag'];
+                if ($kTyp === 'ausgabe' && $betrag > 0) $data['betrag'] = -$betrag;
+                if ($kTyp === 'einnahme' && $betrag < 0) $data['betrag'] = -$betrag;
+            }
+        }
         $fields = []; $params = [];
         foreach (['kategorie_id', 'betrag', 'beschreibung', 'intervall', 'start_datum', 'end_datum', 'aktiv'] as $f) {
             if (isset($data[$f])) { $fields[] = "$f = ?"; $params[] = $data[$f]; }
