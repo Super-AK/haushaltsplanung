@@ -5,6 +5,11 @@ Alle wesentlichen Aenderungen an der Haushaltsplanung.
 Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 die Versionierung folgt [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Behoben
+- Dashboard 'Letzte Transaktionen': nicht alle Transaktionen sichtbar - Pagination mit 'Mehr laden'-Button ergaenzt (neueste zuerst, deterministische Sortierung)
+
 ## [v2.5.0] - 2026-08-05
 
 ### Hinzugefuegt

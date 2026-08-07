@@ -1,5 +1,7 @@
 var monatsChart = null;
 var kategorienChart = null;
+var transaktionenOffset = 10;
+var transaktionenGesamt = 0;
 
 $(document).ready(function() {
     ladeDashboard();
@@ -64,16 +66,10 @@ async function ladeDashboard() {
             });
         }
         
-        var transBody = $('#tabelleTransaktionen tbody').empty();
-        if (dashboard.letzteTransaktionen.length === 0) {
-            transBody.append('<tr><td colspan="3" class="text-muted text-center">Keine Transaktionen</td></tr>');
-        } else {
-            dashboard.letzteTransaktionen.forEach(function(t) {
-                var bc = t.typ === 'einnahme' ? 'text-success' : 'text-danger';
-                var p = t.typ === 'einnahme' ? '+' : '-';
-                transBody.append('<tr><td>' + App.formatDate(t.zahlungsdatum) + '</td><td>' + t.kategorie_name + '</td><td class="' + bc + '">' + p + App.formatCurrency(Math.abs(t.betrag)) + '</td></tr>');
-            });
-        }
+        transaktionenGesamt = dashboard.transaktionenGesamt != null ? dashboard.transaktionenGesamt : dashboard.letzteTransaktionen.length;
+        transaktionenOffset = dashboard.transaktionenLimit != null ? dashboard.transaktionenLimit : dashboard.letzteTransaktionen.length;
+        renderTransaktionen(dashboard.letzteTransaktionen, true);
+        aktualisiereTransaktionenButton();
         
         zeichneMonatsChart(diagramme);
         zeichneKategorienChart(diagramme.kategorien);
@@ -83,6 +79,37 @@ async function ladeDashboard() {
     } catch (error) {
         console.error('Fehler:', error);
         App.error('Fehler beim Laden der Dashboard-Daten');
+    }
+}
+
+function renderTransaktionen(transaktionen, leeren) {
+    var body = $('#tabelleTransaktionen tbody');
+    if (leeren) body.empty();
+    if (transaktionen.length === 0) {
+        if (leeren) body.append('<tr><td colspan="3" class="text-muted text-center">Keine Transaktionen</td></tr>');
+        return;
+    }
+    transaktionen.forEach(function(t) {
+        var bc = t.typ === 'einnahme' ? 'text-success' : 'text-danger';
+        var p = t.typ === 'einnahme' ? '+' : '-';
+        body.append('<tr><td>' + App.formatDate(t.zahlungsdatum) + '</td><td>' + t.kategorie_name + '</td><td class="' + bc + '">' + p + App.formatCurrency(Math.abs(t.betrag)) + '</td></tr>');
+    });
+}
+
+function aktualisiereTransaktionenButton() {
+    $('#btnMehrTransaktionen').toggle(transaktionenOffset < transaktionenGesamt);
+}
+
+async function ladeMehrTransaktionen() {
+    try {
+        var data = await App.api.get('/api/dashboard.php?transaktionen_limit=10&transaktionen_offset=' + transaktionenOffset);
+        transaktionenOffset += data.letzteTransaktionen.length;
+        if (data.transaktionenGesamt != null) transaktionenGesamt = data.transaktionenGesamt;
+        renderTransaktionen(data.letzteTransaktionen, false);
+        aktualisiereTransaktionenButton();
+    } catch (error) {
+        console.error('Fehler:', error);
+        App.error('Fehler beim Laden weiterer Transaktionen');
     }
 }
 

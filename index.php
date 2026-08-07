@@ -201,6 +201,11 @@ require_once __DIR__ . '/includes/header.php';
                             <tbody></tbody>
                         </table>
                     </div>
+                    <div class="text-center mt-2">
+                        <button class="btn btn-sm btn-outline-primary" id="btnMehrTransaktionen" style="display:none;" onclick="ladeMehrTransaktionen()">
+                            <i class="bi bi-plus-circle me-1"></i>Mehr laden
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

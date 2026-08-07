@@ -62,15 +62,22 @@ foreach ($alleFixkosten as $fk) {
 usort($anstehende, fn($a, $b) => $a['naechste_zahlung'] <=> $b['naechste_zahlung']);
 $anstehende = array_slice($anstehende, 0, 5);
 
-// Letzte Transaktionen
+// Letzte Transaktionen (paginiert)
+$transLimit = min(max((int)($_GET['transaktionen_limit'] ?? 10), 1), 100);
+$transOffset = max((int)($_GET['transaktionen_offset'] ?? 0), 0);
+
+$stmt = $db->prepare('SELECT COUNT(*) FROM zahlungen z LEFT JOIN buchungen b ON z.buchung_id = b.id WHERE b.haushalt_id = ?');
+$stmt->execute([$haushaltId]);
+$transaktionenGesamt = (int)$stmt->fetchColumn();
+
 $stmt = $db->prepare("
     SELECT z.*, b.beschreibung as buchung_beschreibung, b.betrag as buchung_betrag,
            k.name as kategorie_name, k.typ, k.farbe
     FROM zahlungen z LEFT JOIN buchungen b ON z.buchung_id = b.id
     LEFT JOIN kategorien k ON b.kategorie_id = k.id
-    WHERE b.haushalt_id = ? ORDER BY z.zahlungsdatum DESC LIMIT 10
+    WHERE b.haushalt_id = ? ORDER BY z.zahlungsdatum DESC, z.id DESC LIMIT ? OFFSET ?
 ");
-$stmt->execute([$haushaltId]);
+$stmt->execute([$haushaltId, $transLimit, $transOffset]);
 $letzteTransaktionen = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $monatsBilanz['bilanz'] = $monatsBilanz['einnahmen'] - $monatsBilanz['ausgaben'];
@@ -79,7 +86,10 @@ echo json_encode([
     'jahresBilanz' => ['einnahmen' => $jahresBilanz['einnahmen'], 'ausgaben' => $jahresBilanz['ausgaben'], 'bilanz' => $jahresBilanz['einnahmen'] - $jahresBilanz['ausgaben']],
     'monatsBilanz' => $monatsBilanz,
     'anstehendeKosten' => $anstehende,
-    'letzteTransaktionen' => $letzteTransaktionen
+    'letzteTransaktionen' => $letzteTransaktionen,
+    'transaktionenGesamt' => $transaktionenGesamt,
+    'transaktionenLimit' => $transLimit,
+    'transaktionenOffset' => $transOffset
 ]);
 
 function berechneNaechstenTermin($startDatum, $intervall, $abDatum) {
